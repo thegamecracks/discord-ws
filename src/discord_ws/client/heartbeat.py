@@ -1,0 +1,104 @@
+from __future__ import annotations
+
+import asyncio
+import json
+import random
+
+from typing import TYPE_CHECKING, Self
+
+if TYPE_CHECKING:
+    from . import Client
+
+
+class Heart:
+    """Manages the heartbeat loop for a client's connections."""
+
+    interval: float | None
+    """
+    The heartbeat interval given by Discord.
+    This must be set before the heartbeat loop can be started.
+    """
+
+    acknowledged: bool
+    """
+    Indicates if the last heartbeat was acknowledged.
+
+    This is set to False every time a heartbeat is sent.
+    If the heart does not receive an acknowledgement before the next
+    heartbeat, the heartbeat loop will stop and the connection will
+    be terminated.
+
+    This attribute should be updated by the caller.
+    """
+
+    sequence: int | None
+    """
+    The last sequence number received from Discord.
+    This attribute should be updated by the caller.
+    """
+
+    def __init__(
+        self,
+        client: Client,
+    ) -> None:
+        self.client = client
+
+        self.interval = None
+        self.acknowledged = True
+        self.sequence = None
+
+        self._beat_event = asyncio.Event()
+
+    async def __aenter__(self) -> Self:
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
+        self.running = False
+        self.interval = None
+
+    async def run(self) -> None:
+        """Runs the heartbeat loop indefinitely."""
+        self.running = True
+        while self.running:
+            await self._sleep()
+            await self._send_heartbeat()
+
+    def beat_soon(self) -> None:
+        """Triggers a heartbeat if the heart is currently sleeping."""
+        self._beat_event.set()
+
+    async def _sleep(self) -> None:
+        """Sleeps until the next heartbeat interval.
+
+        .. seealso:: https://discord.com/developers/docs/topics/gateway#sending-heartbeats
+
+        """
+        assert self.interval is not None
+
+        jitter = random.random()
+        timeout = self.interval + jitter
+        self._beat_event.clear()
+
+        try:
+            await asyncio.wait_for(self._beat_event.wait(), timeout)
+        except asyncio.TimeoutError:
+            pass
+
+    async def _send_heartbeat(self) -> None:
+        """Sends a heartbeat payload to Discord."""
+        if not self.acknowledged:
+            await self.client._ws.close(1002)
+
+            task = asyncio.current_task()
+            assert task is not None
+            task.cancel("Last heartbeat was not acknowledged")
+            return
+
+        payload = self._create_heartbeat_payload()
+        await self.client._ws.send(payload)
+
+        self.acknowledged = False
+
+    def _create_heartbeat_payload(self) -> str:
+        payload = {"op": 1, "d": self.sequence}
+        return json.dumps(payload)
