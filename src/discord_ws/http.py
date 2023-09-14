@@ -4,25 +4,13 @@ import platform
 import httpx
 
 from . import constants
+from .metadata import get_distribution_metadata
 
 BASE_URL = f"https://discord.com/api/v{constants.API_VERSION}"
 """The versioned discord API URL to use when making HTTP requests."""
 
 USER_AGENT_TEMPLATE = "DiscordBot ({homepage} {version}) Python/{python_version}"
 """The template to use when creating the user agent to be sent to Discord."""
-
-
-def _get_distribution_metadata() -> importlib.metadata.PackageMetadata:
-    """
-    Determines and returns metadata for the distribution package that owns
-    this import package.
-
-    .. seealso:: https://docs.python.org/3/library/importlib.metadata.html#mapping-import-to-distribution-packages
-
-    """
-    root_package = __package__.partition(".")[0]
-    distributions = importlib.metadata.packages_distributions()[root_package]
-    return importlib.metadata.metadata(distributions[0])
 
 
 def _get_project_url(
@@ -53,7 +41,7 @@ def _create_headers(
     :param token: The token to use for authentication, if desired.
 
     """
-    metadata = _get_distribution_metadata()
+    metadata = get_distribution_metadata()
     headers = {
         "User-Agent": USER_AGENT_TEMPLATE.format(
             homepage=_get_project_url(metadata, "Homepage"),
