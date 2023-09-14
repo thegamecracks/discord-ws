@@ -29,7 +29,7 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/thegamecracks"
+Homepage = "https://github.com/thegamecracks/discord-ws"
 
 [tool.setuptools.dynamic]
 version = { attr = "discord_ws.__version__" }
