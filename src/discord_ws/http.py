@@ -3,7 +3,9 @@ import platform
 
 import httpx
 
-BASE_URL = "https://discord.com/api/v10"
+from . import constants
+
+BASE_URL = f"https://discord.com/api/v{constants.API_VERSION}"
 """The versioned discord API URL to use when making HTTP requests."""
 
 USER_AGENT_TEMPLATE = "DiscordBot ({homepage} {version}) Python/{python_version}"
