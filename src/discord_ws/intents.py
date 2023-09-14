@@ -1,4 +1,5 @@
 import enum
+from typing import Self
 
 
 class Intents(enum.IntFlag):
@@ -170,3 +171,26 @@ class Intents(enum.IntFlag):
     - AUTO_MODERATION_ACTION_EXECUTION
 
     """
+
+    @classmethod
+    def all(cls) -> Self:
+        """Returns a flag with all intents enabled."""
+        return cls(-1)
+
+    @classmethod
+    def privileged(cls) -> Self:
+        """Returns a flag with all privileged intents enabled."""
+        # fmt: off
+        return (
+            Intents.GUILD_PRESENCES
+            | Intents.GUILD_MEMBERS
+            | Intents.MESSAGE_CONTENT
+        )
+        # fmt: on
+
+    @classmethod
+    def standard(cls) -> Self:
+        """Returns a flag with all standard intents enabled."""
+        flag = cls.all()
+        flag &= ~cls.privileged()
+        return flag
