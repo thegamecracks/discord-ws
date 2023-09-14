@@ -14,5 +14,8 @@ dependencies = [
     "websockets>=11.0.3",
 ]
 
+[project.urls]
+Homepage = "https://github.com/thegamecracks"
+
 [tool.setuptools.dynamic]
 version = { attr = "discord_ws.__version__" }
