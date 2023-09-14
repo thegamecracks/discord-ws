@@ -1,6 +1,8 @@
+import functools
 import importlib.metadata
 
 
+@functools.cache
 def get_distribution_metadata() -> importlib.metadata.PackageMetadata:
     """
     Determines and returns metadata for the distribution package that owns
