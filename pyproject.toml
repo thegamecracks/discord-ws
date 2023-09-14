@@ -15,4 +15,4 @@ dependencies = [
 ]
 
 [tool.setuptools.dynamic]
-version = { attr = "thestarboard.__version__" }
+version = { attr = "discord_ws.__version__" }
