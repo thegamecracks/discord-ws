@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "discord-ws"
-description = "A bare-bones Python wrapper for the Discord Gateway API."
+description = "A bare-bones asynchronous Python wrapper for the Discord Gateway API."
 requires-python = ">=3.11"
 authors = [{ name = "thegamecracks" }]
 readme = "README.md"
