@@ -9,7 +9,10 @@ requires-python = ">=3.11"
 authors = [{ name = "thegamecracks" }]
 readme = "README.md"
 dynamic = ["version"]
-dependencies = []
+dependencies = [
+    "httpx>=0.25.0",
+    "websockets>=11.0.3",
+]
 
 [tool.setuptools.dynamic]
 version = { attr = "thestarboard.__version__" }
