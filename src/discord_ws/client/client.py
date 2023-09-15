@@ -118,9 +118,18 @@ class Client:
             compress=compress,
         )
 
-    async def run(self) -> None:
-        """Begins a connection to the gateway and starts receiving events."""
+    async def run(self, *, reconnect: bool = True) -> None:
+        """Begins and maintains a connection to the gateway.
+
+        :param reconnect:
+            If True, this method will reconnect to Discord
+            where possible.
+
+        """
         log.debug("Starting connection loop")
+
+        reconnect_argument = reconnect
+
         connect = True
         reconnect = False
 
@@ -171,6 +180,9 @@ class Client:
                     else:
                         action = "Closed with %s, cannot reconnect"
                         log.error(action, code_name)
+
+            if not reconnect_argument:
+                break
 
     @property
     def _ws(self) -> WebSocketClientProtocol:
