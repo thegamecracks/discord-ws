@@ -1,4 +1,4 @@
-from typing import Any, NotRequired, TypedDict
+from typing import Any, Literal, NotRequired, TypedDict
 
 
 class Event(TypedDict):
@@ -12,3 +12,12 @@ class Event(TypedDict):
     d: Any
     s: NotRequired[int | None]
     t: NotRequired[str | None]
+
+
+class DispatchEvent(TypedDict):
+    """Represents a dispatch event between the client and Discord gateway."""
+
+    op: Literal[0]
+    d: Any
+    s: int
+    t: str

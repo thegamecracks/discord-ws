@@ -2,7 +2,7 @@ import asyncio
 import logging
 import sys
 from contextlib import asynccontextmanager
-from typing import AsyncIterator, Self
+from typing import AsyncIterator, Self, cast
 
 import websockets.client
 from websockets.client import WebSocketClientProtocol
@@ -13,7 +13,7 @@ from .constants import (
     GATEWAY_CLOSE_CODES,
     GATEWAY_RECONNECT_CLOSE_CODES,
 )
-from .events import Event
+from .events import DispatchEvent, Event
 from .heartbeat import Heart
 from .stream import PlainTextStream, Stream, ZLibStream
 from discord_ws import constants
@@ -318,8 +318,12 @@ class Client:
 
         if event["op"] == 0:
             # Dispatch
+            event = cast(DispatchEvent, event)
             log.debug("Received event %s", event["t"])
-            raise NotImplementedError
+
+            if event["t"] == "READY":
+                self._resume_gateway_url = event["d"]["resume_gateway_url"]
+                self._session_id = event["d"]["session_id"]
 
         elif event["op"] == 1:
             # Heartbeat
