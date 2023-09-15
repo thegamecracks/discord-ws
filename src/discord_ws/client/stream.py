@@ -97,12 +97,12 @@ class ZLibStream(Stream):
             assert self._decompress_buffer is not None
             assert self._decompress_obj is not None
 
+            log.debug("Buffering %d bytes", len(data))
             self._decompress_buffer += data
             if not data.endswith(Z_SYNC_FLUSH):
-                log.debug("Received %d bytes", len(data))
                 continue
 
-            log.debug("Received %d bytes with Z_SYNC_FLUSH", len(data))
+            log.debug("Decompressing %d bytes", len(self._decompress_buffer))
             data = self._decompress_obj.decompress(self._decompress_buffer)
             self._decompress_buffer.clear()
 
