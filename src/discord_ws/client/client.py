@@ -189,10 +189,10 @@ class Client:
                         and self._session_id is not None
                     )
 
-                    if reconnect:
+                    if reconnect and reconnect_argument:
                         action = "Closed with %s, attempting to resume session"
                         log.info(action, code_name)
-                    elif connect:
+                    elif connect and reconnect_argument:
                         action = "Closed with %s, attempting to reconnect"
                         log.info(action, code_name)
                     else:
