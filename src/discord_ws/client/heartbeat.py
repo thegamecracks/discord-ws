@@ -102,7 +102,7 @@ class Heart:
         """Sends a heartbeat payload to Discord."""
         if not self.acknowledged:
             log.debug("Heartbeat not acknowledged, closing connection")
-            await self.client._ws.close(1002)
+            await self.client._ws.close(1002, reason="Heartbeat ACK lost")
 
             task = asyncio.current_task()
             assert task is not None
