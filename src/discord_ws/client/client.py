@@ -10,6 +10,7 @@ from websockets.exceptions import ConnectionClosed
 from .heartbeat import Heart
 from .stream import Event, PlainTextStream, Stream, ZLibStream
 from discord_ws import constants
+from discord_ws.http import _create_user_agent
 from discord_ws.intents import Intents
 from discord_ws.metadata import get_distribution_metadata
 
@@ -47,9 +48,12 @@ class Client:
         gateway_url: str,
         token: str,
         intents: Intents,
-        user_agent: str,
-        compress: bool,
+        user_agent: str | None = None,
+        compress: bool = True,
     ) -> None:
+        if user_agent is None:
+            user_agent = _create_user_agent(get_distribution_metadata())
+
         self.gateway_url = gateway_url
         self.token = token
         self.intents = intents
