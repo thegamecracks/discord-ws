@@ -74,5 +74,7 @@ async def main():
 
     await client.run()
 
-
-asyncio.run(main())
+try:
+    asyncio.run(main())
+except KeyboardInterrupt:
+    pass
