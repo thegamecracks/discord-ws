@@ -189,6 +189,11 @@ class Intents(enum.IntFlag):
         # fmt: on
 
     @classmethod
+    def none(cls) -> Self:
+        """Returns a flag with no intents enabled."""
+        return cls(0)
+
+    @classmethod
     def standard(cls) -> Self:
         """Returns a flag with all standard intents enabled."""
         flag = cls.all()
