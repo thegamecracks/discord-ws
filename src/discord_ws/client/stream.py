@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import zlib
 
 from typing import TYPE_CHECKING, Any, NotRequired, Protocol, Self, TypedDict
@@ -8,7 +9,15 @@ from typing import TYPE_CHECKING, Any, NotRequired, Protocol, Self, TypedDict
 if TYPE_CHECKING:
     from . import Client
 
+log = logging.getLogger(__name__)
+
 Z_SYNC_FLUSH = b"\x00\x00\xff\xff"
+
+
+def _get_data_type(data: bytes | str) -> str:
+    if isinstance(data, str):
+        return "chars"
+    return "bytes"
 
 
 class Event(TypedDict):
@@ -66,6 +75,7 @@ class PlainTextStream(Stream):
     async def recv(self) -> Event:
         while True:
             data = await self.client._ws.recv()
+            log.debug("Received %d %s", len(data), _get_data_type(data))
             return json.loads(data)
 
     async def send(self, payload: Event) -> None:
@@ -101,8 +111,10 @@ class ZLibStream(Stream):
 
             self._decompress_buffer += data
             if not data.endswith(Z_SYNC_FLUSH):
+                log.debug("Received %d bytes", len(data))
                 continue
 
+            log.debug("Received %d bytes with Z_SYNC_FLUSH", len(data))
             data = self._decompress_obj.decompress(self._decompress_buffer)
             self._decompress_buffer.clear()
 
@@ -111,4 +123,5 @@ class ZLibStream(Stream):
 
     async def send(self, payload: Event) -> None:
         data = json.dumps(payload)
+        log.debug("Sending %d %s", len(data), _get_data_type(data))
         await self.client._ws.send(data)
