@@ -32,6 +32,14 @@ def _get_project_url(
     raise ValueError(f"Could not find project url for: {label!r}")
 
 
+def _create_user_agent(metadata: importlib.metadata.PackageMetadata) -> str:
+    return USER_AGENT_TEMPLATE.format(
+        homepage=_get_project_url(metadata, "Homepage"),
+        version=metadata["Version"],
+        python_version=platform.python_version(),
+    )
+
+
 def _create_headers(
     *,
     token: str | None = None,
@@ -43,11 +51,7 @@ def _create_headers(
     """
     metadata = get_distribution_metadata()
     headers = {
-        "User-Agent": USER_AGENT_TEMPLATE.format(
-            homepage=_get_project_url(metadata, "Homepage"),
-            version=metadata["Version"],
-            python_version=platform.python_version(),
-        )
+        "User-Agent": _create_user_agent(metadata),
     }
 
     if token is not None:
