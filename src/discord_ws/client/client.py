@@ -333,7 +333,7 @@ class Client:
         elif event["op"] == 7:
             # Reconnect
             log.debug("Received request to reconnect")
-            raise NotImplementedError
+            await self._ws.close(1002, reason="Reconnect ACK")
 
         elif event["op"] == 9:
             # Invalid Session
