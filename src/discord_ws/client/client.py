@@ -371,10 +371,9 @@ class Client:
         elif event["op"] == 9:
             # Invalid Session
             log.debug("Session has been invalidated")
-            await self._ws.close(
-                1002 if event["d"] else 1000,
-                reason="Invalid Session ACK",
-            )
+            if not event["d"]:
+                self._session_id = None
+            await self._ws.close(1002, reason="Invalid Session ACK")
 
         elif event["op"] == 10:
             # Hello
