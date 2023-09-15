@@ -14,6 +14,7 @@ from .constants import (
     GATEWAY_CLOSE_CODES,
     GATEWAY_RECONNECT_CLOSE_CODES,
 )
+from .errors import _unwrap_first_exception
 from .events import DispatchEvent, Event
 from .heartbeat import Heart
 from .stream import PlainTextStream, Stream, ZLibStream
@@ -161,10 +162,15 @@ class Client:
             try:
                 async with self._connect(gateway_url) as ws:
                     await self._run_forever(session_id=self._session_id)
-            except ConnectionClosed as e:
+            except* ConnectionClosed as eg:
+                # We don't actually have multiple connections,
+                # what we care about is the first ConnectionClosed exception
+                e = _unwrap_first_exception(eg)
+                assert e is not None
+
                 if e.rcvd is None and e.sent is None:
                     reconnect = True
-                elif e.sent is not None:
+                elif e.sent is not None and not e.rcvd_then_sent:
                     # 1000 / 1001 causes our client to appear offline,
                     # in which case we probably don't want to reconnect
                     reconnect = e.sent not in (1000, 1001)
