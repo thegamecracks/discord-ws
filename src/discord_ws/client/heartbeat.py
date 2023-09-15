@@ -62,7 +62,8 @@ class Heart:
         self.running = False
         self.interval = None
         self.acknowledged = True
-        self.sequence = None
+        # self.sequence should not be reset because it needs to persist
+        # between connections when resuming
 
     async def run(self) -> None:
         """Runs the heartbeat loop indefinitely."""
