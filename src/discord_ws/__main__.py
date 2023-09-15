@@ -71,7 +71,9 @@ async def main():
 
     await client.run()
 
-logging.basicConfig()
+logging.basicConfig(
+    format="%(name)30s (%(levelname)8s) => %(message)s",
+)
 logging.getLogger(__package__).setLevel(logging.DEBUG)
 
 try:
