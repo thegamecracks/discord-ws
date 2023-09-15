@@ -19,6 +19,11 @@ from .events import DispatchEvent, Event
 from .heartbeat import Heart
 from .stream import PlainTextStream, Stream, ZLibStream
 from discord_ws import constants
+from discord_ws.errors import (
+    AuthenticationFailedError,
+    ConnectionClosedError,
+    PrivilegedIntentsError,
+)
 from discord_ws.http import _create_user_agent
 from discord_ws.intents import Intents
 from discord_ws.metadata import get_distribution_metadata
@@ -198,9 +203,13 @@ class Client:
                     elif reconnect_argument:
                         action = "Closed with %s, cannot reconnect"
                         log.error(action, code_name)
+                        exc = self._make_connection_closed_error(code, code_name)
+                        raise exc from None
                     else:
                         action = "Closed with %s, will not reconnect"
                         log.error(action, code_name)
+                        exc = self._make_connection_closed_error(code, code_name)
+                        raise exc from None
 
             if not reconnect_argument:
                 break
@@ -405,3 +414,19 @@ class Client:
         if asyncio.isfuture(ret):
             self._dispatch_futures.add(ret)
             ret.add_done_callback(self._dispatch_futures.discard)
+
+    def _make_connection_closed_error(
+        self,
+        code: int,
+        reason: str,
+    ) -> ConnectionClosedError:
+        """Creates an exception for the given close code."""
+        if code == 4004:
+            return AuthenticationFailedError(code, reason)
+        elif code == 4014:
+            return PrivilegedIntentsError(
+                self.intents & Intents.privileged(),
+                code,
+                reason,
+            )
+        return ConnectionClosedError(code, reason)
