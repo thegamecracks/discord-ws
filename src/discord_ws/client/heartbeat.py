@@ -90,13 +90,14 @@ class Heart:
 
         jitter = random.random()
         timeout = self.interval + jitter
-        self._beat_event.clear()
 
         try:
             log.debug("Waiting %.2fs for heartbeat", timeout)
             await asyncio.wait_for(self._beat_event.wait(), timeout)
         except asyncio.TimeoutError:
             pass
+        finally:
+            self._beat_event.clear()
 
     async def _send_heartbeat(self) -> None:
         """Sends a heartbeat payload to Discord."""
