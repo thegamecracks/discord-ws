@@ -282,6 +282,10 @@ class Client:
                     "browser": metadata["Name"],
                     "device": metadata["Name"],
                 },
+                # TODO: payload compression
+                # TODO: large_threshold
+                # TODO: sharding
+                # TODO: presence
             },
         }
 
