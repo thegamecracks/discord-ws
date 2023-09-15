@@ -156,6 +156,7 @@ class Client:
                 gateway_url = self._resume_gateway_url
             else:
                 gateway_url = self.gateway_url
+                self._heart.sequence = None
 
             try:
                 async with self._connect(gateway_url) as ws:
@@ -351,6 +352,8 @@ class Client:
             # Dispatch
             event = cast(DispatchEvent, event)
             log.debug("Received %s event", event["t"])
+
+            self._heart.sequence = event["s"]
 
             if event["t"] == "READY":
                 self._resume_gateway_url = event["d"]["resume_gateway_url"]
