@@ -121,6 +121,8 @@ class Client:
     async def run(self, *, reconnect: bool = True) -> None:
         """Begins and maintains a connection to the gateway.
 
+        Use the :meth:`close()` method to gracefully close the connection.
+
         :param reconnect:
             If True, this method will reconnect to Discord
             where possible.
@@ -183,6 +185,10 @@ class Client:
 
             if not reconnect_argument:
                 break
+
+    async def close(self) -> None:
+        """Gracefully closes the current connection."""
+        await self._ws.close(1000, reason="Going offline")
 
     @property
     def _ws(self) -> WebSocketClientProtocol:
