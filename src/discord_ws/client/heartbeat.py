@@ -22,6 +22,18 @@ class Heart:
     This must be set before the heartbeat loop can be started.
     """
 
+    acknowledged: bool
+    """
+    Indicates if the last heartbeat was acknowledged.
+
+    This is set to False every time a heartbeat is sent.
+    If the heart does not receive an acknowledgement before the next
+    heartbeat, the heartbeat loop will stop and the connection will
+    be terminated.
+
+    This attribute should be updated by the caller.
+    """
+
     sequence: int | None
     """
     The last sequence number received from Discord.
@@ -36,7 +48,7 @@ class Heart:
 
         self.running = False
         self.interval = None
-        self._acknowledged = True
+        self.acknowledged = True
         self.sequence = None
 
         self._beat_event = asyncio.Event()
@@ -48,28 +60,8 @@ class Heart:
     async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
         self.running = False
         self.interval = None
-        self._acknowledged = True
+        self.acknowledged = True
         self.sequence = None
-
-    @property
-    def acknowledged(self) -> bool:
-        """
-        Indicates if the last heartbeat was acknowledged.
-
-        This is set to False every time a heartbeat is sent.
-        If the heart does not receive an acknowledgement before the next
-        heartbeat, the heartbeat loop will stop and the connection will
-        be terminated.
-
-        This attribute should be updated by the caller.
-        """
-        return self._acknowledged
-
-    @acknowledged.setter
-    def acknowledged(self, value: bool) -> None:
-        if value:
-            log.debug("Heartbeat acknowledged")
-        self._acknowledged = value
 
     async def run(self) -> None:
         """Runs the heartbeat loop indefinitely."""
