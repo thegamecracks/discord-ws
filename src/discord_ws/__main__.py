@@ -62,9 +62,6 @@ def event_callback(event: DispatchEvent) -> None:
 
 
 async def main():
-    logging.basicConfig()
-    logging.getLogger(__package__).setLevel(logging.DEBUG)
-
     client = await Client.create(
         token=token,
         intents=args.intents,
@@ -73,6 +70,9 @@ async def main():
     )
 
     await client.run()
+
+logging.basicConfig()
+logging.getLogger(__package__).setLevel(logging.DEBUG)
 
 try:
     asyncio.run(main())
