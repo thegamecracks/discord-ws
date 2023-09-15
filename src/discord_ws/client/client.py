@@ -195,8 +195,11 @@ class Client:
                     elif connect and reconnect_argument:
                         action = "Closed with %s, attempting to reconnect"
                         log.info(action, code_name)
-                    else:
+                    elif reconnect_argument:
                         action = "Closed with %s, cannot reconnect"
+                        log.error(action, code_name)
+                    else:
+                        action = "Closed with %s, will not reconnect"
                         log.error(action, code_name)
 
             if not reconnect_argument:
