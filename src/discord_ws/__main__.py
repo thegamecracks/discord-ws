@@ -5,6 +5,7 @@ import getpass
 import logging
 import os
 
+from discord_ws import DispatchEvent
 from . import Client, Intents
 
 
@@ -56,6 +57,10 @@ else:
     token = getpass.getpass("Token: ")
 
 
+def event_callback(event: DispatchEvent) -> None:
+    pass
+
+
 async def main():
     logging.basicConfig()
     logging.getLogger(__package__).setLevel(logging.DEBUG)
@@ -63,6 +68,7 @@ async def main():
     client = await Client.create(
         token=token,
         intents=args.intents,
+        on_dispatch=event_callback,
         compress=args.compression is not None,
     )
 

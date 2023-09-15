@@ -1,8 +1,9 @@
 import asyncio
+import inspect
 import logging
 import sys
 from contextlib import asynccontextmanager
-from typing import AsyncIterator, Self, cast
+from typing import Any, AsyncIterator, Awaitable, Callable, Self, cast
 
 import websockets.client
 from websockets.client import WebSocketClientProtocol
@@ -57,6 +58,7 @@ class Client:
         gateway_url: str,
         token: str,
         intents: Intents,
+        on_dispatch: Callable[[DispatchEvent], Awaitable],
         user_agent: str | None = None,
         compress: bool = True,
     ) -> None:
@@ -68,6 +70,7 @@ class Client:
         self.intents = intents
         self.user_agent = user_agent
         self.compress = compress
+        self.on_dispatch = on_dispatch
 
         self._heart = Heart(self)
         self._stream: Stream | None = None
@@ -75,6 +78,7 @@ class Client:
         self._current_websocket = None
         self._resume_gateway_url = None
         self._session_id = None
+        self._dispatch_futures: set[asyncio.Future] = set()
 
     @classmethod
     async def create(
@@ -82,6 +86,7 @@ class Client:
         *,
         token: str,
         intents: Intents,
+        on_dispatch: Callable[[DispatchEvent], Any],
         user_agent: str | None = None,
         compress: bool = True,
     ) -> Self:
@@ -93,6 +98,9 @@ class Client:
             The token to use for authenticating with the gateway.
         :param intents:
             The gateway intents to use when identifying with the gateway.
+        :param on_dispatch:
+            The callback function to invoke when an event is dispatched.
+            This can be a coroutine function or return an awaitable object.
         :param user_agent:
             An optional user agent used when connecting to the gateway,
             overriding the library's default.
@@ -114,6 +122,7 @@ class Client:
             gateway_url=gateway_url,
             token=token,
             intents=intents,
+            on_dispatch=on_dispatch,
             user_agent=user_agent or client.headers["User-Agent"],
             compress=compress,
         )
@@ -347,6 +356,8 @@ class Client:
                 self._resume_gateway_url = event["d"]["resume_gateway_url"]
                 self._session_id = event["d"]["session_id"]
 
+            self._dispatch(event)
+
         elif event["op"] == 1:
             # Heartbeat
             log.debug("Received request to heartbeat")
@@ -374,3 +385,12 @@ class Client:
             # Heartbeat ACK
             log.debug("Received heartbeat acknowledgement")
             self._heart.acknowledged = True
+
+    def _dispatch(self, event: DispatchEvent) -> None:
+        """Dispatches an event with :attr:`on_dispatch`."""
+        ret = self.on_dispatch(event)
+        if inspect.iscoroutine(ret) or inspect.isawaitable(ret):
+            ret = asyncio.ensure_future(ret)
+        if asyncio.isfuture(ret):
+            self._dispatch_futures.add(ret)
+            ret.add_done_callback(self._dispatch_futures.discard)
