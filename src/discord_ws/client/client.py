@@ -8,6 +8,11 @@ import websockets.client
 from websockets.client import WebSocketClientProtocol
 from websockets.exceptions import ConnectionClosed
 
+from .constants import (
+    GATEWAY_CANNOT_RESUME_CLOSE_CODES,
+    GATEWAY_CLOSE_CODES,
+    GATEWAY_RECONNECT_CLOSE_CODES,
+)
 from .events import Event
 from .heartbeat import Heart
 from .stream import PlainTextStream, Stream, ZLibStream
@@ -115,11 +120,57 @@ class Client:
 
     async def run(self) -> None:
         """Begins a connection to the gateway and starts receiving events."""
-        async for ws in self._connect_forever(self.gateway_url):
+        log.debug("Starting connection loop")
+        connect = True
+        reconnect = False
+
+        while connect or reconnect:
+            connect = False
+            reconnect = False
+
+            if (
+                reconnect
+                and self._resume_gateway_url is not None
+                and self._session_id is not None
+            ):
+                gateway_url = self._resume_gateway_url
+            else:
+                gateway_url = self.gateway_url
+
             try:
-                await self._run_forever()
-            except ConnectionClosed:
-                raise NotImplementedError
+                async with self._connect(gateway_url) as ws:
+                    await self._run_forever(session_id=self._session_id)
+            except ConnectionClosed as e:
+                if e.rcvd is None and e.sent is None:
+                    reconnect = True
+                elif e.sent is not None:
+                    # 1000 / 1001 causes our client to appear offline,
+                    # in which case we probably don't want to reconnect
+                    reconnect = e.sent not in (1000, 1001)
+                elif e.rcvd is not None:
+                    code = e.rcvd.code
+                    code_name = GATEWAY_CLOSE_CODES.get(code)
+                    if code_name is None:
+                        code_name = str(e.rcvd)
+                    else:
+                        code_name = f"{code} {code_name}"
+
+                    connect = code in GATEWAY_RECONNECT_CLOSE_CODES
+                    reconnect = (
+                        connect
+                        and code not in GATEWAY_CANNOT_RESUME_CLOSE_CODES
+                        and self._session_id is not None
+                    )
+
+                    if reconnect:
+                        action = "Closed with %s, attempting to resume session"
+                        log.info(action, code_name)
+                    elif connect:
+                        action = "Closed with %s, attempting to reconnect"
+                        log.info(action, code_name)
+                    else:
+                        action = "Closed with %s, cannot reconnect"
+                        log.error(action, code_name)
 
     @property
     def _ws(self) -> WebSocketClientProtocol:
@@ -136,7 +187,7 @@ class Client:
 
         return self._current_websocket
 
-    async def _run_forever(self) -> None:
+    async def _run_forever(self, *, session_id: str | None) -> None:
         async with (
             self._create_stream(),
             self._heart,
@@ -148,7 +199,11 @@ class Client:
             assert self._heart.interval is not None
 
             tg.create_task(self._heart.run())
-            tg.create_task(self._identify())
+
+            if session_id is None:
+                tg.create_task(self._identify())
+            else:
+                tg.create_task(self._resume(session_id))
 
             while True:
                 await self._receive_event()
@@ -171,8 +226,9 @@ class Client:
 
         return url + "?" + urllib.parse.urlencode(params)
 
-    async def _connect_forever(self, url: str) -> AsyncIterator[WebSocketClientProtocol]:
-        """Returns an iterator for connecting to the websocket indefinitely."""
+    @asynccontextmanager
+    async def _connect(self, url: str) -> AsyncIterator[WebSocketClientProtocol]:
+        """Connects to the gateway URL and sets it as the current websocket."""
         connector = websockets.client.connect(
             self._add_gateway_params(url),
             user_agent_header=self.user_agent,
@@ -181,14 +237,12 @@ class Client:
 
         log.debug("Creating websocket connection")
 
-        async for ws in connector:
+        async with connector as ws:
             self._current_websocket = ws
             try:
                 yield ws
             finally:
                 self._current_websocket = None
-
-            log.debug("Re-creating websocket connection")
 
     @asynccontextmanager
     async def _create_stream(self) -> AsyncIterator[Stream]:
@@ -232,6 +286,25 @@ class Client:
         }
 
         log.debug("Sending identify payload")
+        await self._stream.send(payload)
+
+    async def _resume(self, session_id: str) -> None:
+        """Resumes the given session with Discord.
+
+        .. seealso:: https://discord.com/developers/docs/topics/gateway#resuming
+
+        """
+        assert self._stream is not None
+        payload: Event = {
+            "op": 6,
+            "d": {
+                "token": self.token,
+                "session_id": session_id,
+                "session_id": self._heart.sequence,
+            },
+        }
+
+        log.debug("Sending resume payload")
         await self._stream.send(payload)
 
     async def _receive_event(self) -> None:
