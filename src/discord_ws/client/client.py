@@ -319,7 +319,7 @@ class Client:
         if event["op"] == 0:
             # Dispatch
             event = cast(DispatchEvent, event)
-            log.debug("Received event %s", event["t"])
+            log.debug("Received %s event", event["t"])
 
             if event["t"] == "READY":
                 self._resume_gateway_url = event["d"]["resume_gateway_url"]
