@@ -2,12 +2,15 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import random
 
 from typing import TYPE_CHECKING, Self
 
 if TYPE_CHECKING:
     from . import Client
+
+log = logging.getLogger(__name__)
 
 
 class Heart:
@@ -17,18 +20,6 @@ class Heart:
     """
     The heartbeat interval given by Discord.
     This must be set before the heartbeat loop can be started.
-    """
-
-    acknowledged: bool
-    """
-    Indicates if the last heartbeat was acknowledged.
-
-    This is set to False every time a heartbeat is sent.
-    If the heart does not receive an acknowledgement before the next
-    heartbeat, the heartbeat loop will stop and the connection will
-    be terminated.
-
-    This attribute should be updated by the caller.
     """
 
     sequence: int | None
@@ -45,7 +36,7 @@ class Heart:
 
         self.running = False
         self.interval = None
-        self.acknowledged = True
+        self._acknowledged = True
         self.sequence = None
 
         self._beat_event = asyncio.Event()
@@ -57,8 +48,28 @@ class Heart:
     async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
         self.running = False
         self.interval = None
-        self.acknowledged = True
+        self._acknowledged = True
         self.sequence = None
+
+    @property
+    def acknowledged(self) -> bool:
+        """
+        Indicates if the last heartbeat was acknowledged.
+
+        This is set to False every time a heartbeat is sent.
+        If the heart does not receive an acknowledgement before the next
+        heartbeat, the heartbeat loop will stop and the connection will
+        be terminated.
+
+        This attribute should be updated by the caller.
+        """
+        return self._acknowledged
+
+    @acknowledged.setter
+    def acknowledged(self, value: bool) -> None:
+        if value:
+            log.debug("Heartbeat acknowledged")
+        self._acknowledged = value
 
     async def run(self) -> None:
         """Runs the heartbeat loop indefinitely."""
@@ -88,6 +99,7 @@ class Heart:
         self._beat_event.clear()
 
         try:
+            log.debug("Waiting %.2fs for heartbeat", timeout)
             await asyncio.wait_for(self._beat_event.wait(), timeout)
         except asyncio.TimeoutError:
             pass
@@ -95,6 +107,7 @@ class Heart:
     async def _send_heartbeat(self) -> None:
         """Sends a heartbeat payload to Discord."""
         if not self.acknowledged:
+            log.debug("Heartbeat not acknowledged, closing connection")
             await self.client._ws.close(1002)
 
             task = asyncio.current_task()
@@ -108,5 +121,6 @@ class Heart:
         self.acknowledged = False
 
     def _create_heartbeat_payload(self) -> str:
+        log.debug("Sending heartbeat, last sequence: %s", self.sequence)
         payload = {"op": 1, "d": self.sequence}
         return json.dumps(payload)
