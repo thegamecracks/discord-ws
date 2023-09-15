@@ -350,7 +350,7 @@ class Client:
         elif event["op"] == 10:
             # Hello
             log.debug("Received hello from gateway")
-            self._heart.interval = event["d"]["heartbeat_interval"]
+            self._heart.interval = event["d"]["heartbeat_interval"] / 1000
 
         elif event["op"] == 11:
             # Heartbeat ACK
