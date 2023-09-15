@@ -8,8 +8,9 @@ import websockets.client
 from websockets.client import WebSocketClientProtocol
 from websockets.exceptions import ConnectionClosed
 
+from .events import Event
 from .heartbeat import Heart
-from .stream import Event, PlainTextStream, Stream, ZLibStream
+from .stream import PlainTextStream, Stream, ZLibStream
 from discord_ws import constants
 from discord_ws.http import _create_user_agent
 from discord_ws.intents import Intents

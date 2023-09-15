@@ -3,8 +3,9 @@ from __future__ import annotations
 import json
 import logging
 import zlib
+from typing import TYPE_CHECKING, Any, Protocol, Self
 
-from typing import TYPE_CHECKING, Any, NotRequired, Protocol, Self, TypedDict
+from .events import Event
 
 if TYPE_CHECKING:
     from . import Client
@@ -18,19 +19,6 @@ def _get_data_type(data: bytes | str) -> str:
     if isinstance(data, str):
         return "chars"
     return "bytes"
-
-
-class Event(TypedDict):
-    """Represents an event between the client and Discord gateway.
-
-    .. seealso:: https://discord.com/developers/docs/topics/gateway-events#payload-structure
-
-    """
-
-    op: int
-    d: Any
-    s: NotRequired[int | None]
-    t: NotRequired[str | None]
 
 
 class Stream(Protocol):
