@@ -51,6 +51,7 @@ class Heart:
         self._beat_event = asyncio.Event()
 
     async def __aenter__(self) -> Self:
+        self.running = True
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
@@ -61,7 +62,11 @@ class Heart:
 
     async def run(self) -> None:
         """Runs the heartbeat loop indefinitely."""
-        self.running = True
+        if not self.running:
+            raise RuntimeError(
+                "Heartbeat not ready to run; did you use async with heart?"
+            )
+
         while self.running:
             await self._sleep()
             await self._send_heartbeat()
