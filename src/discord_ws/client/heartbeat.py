@@ -37,6 +37,7 @@ class Heart:
     sequence: int | None
     """
     The last sequence number received from Discord.
+
     This attribute should be updated by the caller.
     """
 
