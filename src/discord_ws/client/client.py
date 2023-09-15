@@ -114,7 +114,7 @@ class Client:
 
     async def run(self) -> None:
         """Begins a connection to the gateway and starts receiving events."""
-        async for ws in self._connect_forever():
+        async for ws in self._connect_forever(self.gateway_url):
             try:
                 await self._run_forever()
             except ConnectionClosed:
@@ -170,10 +170,10 @@ class Client:
 
         return url + "?" + urllib.parse.urlencode(params)
 
-    async def _connect_forever(self) -> AsyncIterator[WebSocketClientProtocol]:
+    async def _connect_forever(self, url: str) -> AsyncIterator[WebSocketClientProtocol]:
         """Returns an iterator for connecting to the websocket indefinitely."""
         connector = websockets.client.connect(
-            self._add_gateway_params(self.gateway_url),
+            self._add_gateway_params(url),
             user_agent_header=self.user_agent,
             # compression=None,
         )
