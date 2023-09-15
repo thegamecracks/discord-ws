@@ -2,6 +2,12 @@
 
 A bare-bones asynchronous Python wrapper for the Discord Gateway API.
 
+> [!NOTE]
+>
+> This library is **not** associated with [discord-ws](https://pypi.org/project/discord-ws/)
+> on PyPI, which is written by a different author. For now, I am not planning
+> to release this project on PyPI.
+
 ## Usage
 
 Assuming you have Python 3.11+ and Git installed, you can install this library
