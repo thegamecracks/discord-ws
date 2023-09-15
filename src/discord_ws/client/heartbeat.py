@@ -43,6 +43,7 @@ class Heart:
     ) -> None:
         self.client = client
 
+        self.running = False
         self.interval = None
         self.acknowledged = True
         self.sequence = None
@@ -55,6 +56,8 @@ class Heart:
     async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
         self.running = False
         self.interval = None
+        self.acknowledged = True
+        self.sequence = None
 
     async def run(self) -> None:
         """Runs the heartbeat loop indefinitely."""
