@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import sys
 from contextlib import asynccontextmanager
 from typing import AsyncIterator, Self
@@ -13,6 +14,8 @@ from discord_ws import constants
 from discord_ws.http import _create_user_agent
 from discord_ws.intents import Intents
 from discord_ws.metadata import get_distribution_metadata
+
+log = logging.getLogger(__name__)
 
 
 class Client:
@@ -95,6 +98,7 @@ class Client:
         """
         from discord_ws import http
 
+        log.debug("Requesting gateway URL")
         async with http.create_httpx_client(token=token) as client:
             resp = await client.get("/gateway")
             resp.raise_for_status()
@@ -174,12 +178,16 @@ class Client:
             # compression=None,
         )
 
+        log.debug("Creating websocket connection")
+
         async for ws in connector:
             self._current_websocket = ws
             try:
                 yield ws
             finally:
                 self._current_websocket = None
+
+            log.debug("Re-creating websocket connection")
 
     @asynccontextmanager
     async def _create_stream(self) -> AsyncIterator[Stream]:
@@ -222,6 +230,7 @@ class Client:
             },
         }
 
+        log.debug("Sending identify payload")
         await self._stream.send(payload)
 
     async def _receive_event(self) -> None:
@@ -235,24 +244,30 @@ class Client:
 
         if event["op"] == 0:
             # Dispatch
+            log.debug("Received event %s", event["t"])
             raise NotImplementedError
 
         elif event["op"] == 1:
             # Heartbeat
+            log.debug("Received request to heartbeat")
             self._heart.beat_soon()
 
         elif event["op"] == 7:
             # Reconnect
+            log.debug("Received request to reconnect")
             raise NotImplementedError
 
         elif event["op"] == 9:
             # Invalid Session
+            log.debug("Session has been invalidated")
             raise NotImplementedError
 
         elif event["op"] == 10:
             # Hello
+            log.debug("Received hello from gateway")
             self._heart.interval = event["d"]["heartbeat_interval"]
 
         elif event["op"] == 11:
             # Heartbeat ACK
+            log.debug("Received heartbeat acknowledgement")
             self._heart.acknowledged = True
