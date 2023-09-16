@@ -77,7 +77,7 @@ class Heart:
             await self._send_heartbeat()
 
     def beat_soon(self) -> None:
-        """Triggers a heartbeat if the heart is currently sleeping."""
+        """Skips the current interval to trigger the next heartbeat."""
         self._beat_event.set()
 
     async def _sleep(self) -> None:
@@ -96,8 +96,6 @@ class Heart:
             await asyncio.wait_for(self._beat_event.wait(), timeout)
         except asyncio.TimeoutError:
             pass
-        finally:
-            self._beat_event.clear()
 
     async def _send_heartbeat(self) -> None:
         """Sends a heartbeat payload to Discord."""
@@ -112,6 +110,7 @@ class Heart:
 
         payload = self._create_heartbeat_payload()
         await self.client._ws.send(payload)
+        self._beat_event.clear()
 
         self.acknowledged = False
 
