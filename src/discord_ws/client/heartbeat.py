@@ -110,8 +110,8 @@ class Heart:
 
         payload = self._create_heartbeat_payload()
         await self.client._ws.send(payload)
-        self._beat_event.clear()
 
+        self._beat_event.clear()
         self.acknowledged = False
 
     def _create_heartbeat_payload(self) -> str:
