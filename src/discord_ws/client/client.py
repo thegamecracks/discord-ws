@@ -214,6 +214,11 @@ class Client:
             if not reconnect_argument:
                 break
 
+            # TODO: exponential backoff
+            duration = 1.0
+            log.debug("Waiting %.3fs before reconnecting", duration)
+            await asyncio.sleep(duration)
+
     async def close(self) -> None:
         """Gracefully closes the current connection."""
         await self._ws.close(1000, reason="Going offline")
