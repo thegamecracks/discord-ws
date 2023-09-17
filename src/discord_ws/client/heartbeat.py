@@ -51,6 +51,7 @@ class Heart:
         self.sequence = None
 
         self._beat_event = asyncio.Event()
+        self._rand = random.Random()
 
     @asynccontextmanager
     async def stay_alive(
@@ -107,7 +108,7 @@ class Heart:
         """
         assert self.interval is not None
 
-        jitter = random.random()
+        jitter = self._rand.random()
         timeout = self.interval + jitter
 
         try:
