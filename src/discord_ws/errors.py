@@ -49,3 +49,10 @@ class PrivilegedIntentsError(ConnectionClosedError):
             "Go to the developer portal at https://discord.com/developers/applications\n"
             "and make sure you have enabled these intents: {}\n"
         ).format(intents)
+
+
+class HeartbeatLostError(ClientError):
+    """A heartbeat acknowledgement from the server was missed."""
+
+    def __init__(self) -> None:
+        super().__init__("Discord was not able to acknowledge our heartbeat.")

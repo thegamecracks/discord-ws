@@ -6,6 +6,8 @@ import random
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING, AsyncIterator, Self
 
+from discord_ws.errors import HeartbeatLostError
+
 if TYPE_CHECKING:
     from . import Client, Event
 
@@ -122,11 +124,7 @@ class Heart:
         if not self.acknowledged:
             log.debug("Heartbeat not acknowledged, closing connection")
             await self.client._ws.close(1002, reason="Heartbeat ACK lost")
-
-            task = asyncio.current_task()
-            assert task is not None
-            task.cancel("Last heartbeat was not acknowledged")
-            return
+            raise HeartbeatLostError()
 
         assert self.client._stream is not None
 

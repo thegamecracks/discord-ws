@@ -23,6 +23,7 @@ from discord_ws import constants
 from discord_ws.errors import (
     AuthenticationFailedError,
     ConnectionClosedError,
+    HeartbeatLostError,
     PrivilegedIntentsError,
 )
 from discord_ws.http import _create_user_agent
@@ -215,6 +216,13 @@ class Client:
                         log.error(action, code_name)
                         exc = self._make_connection_closed_error(code, code_name)
                         raise exc from None
+            except* HeartbeatLostError as eg:
+                if reconnect_argument:
+                    reconnect = True
+                else:
+                    e = _unwrap_first_exception(eg)
+                    assert e is not None
+                    raise e from None
 
             if not reconnect_argument:
                 break

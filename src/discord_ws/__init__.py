@@ -3,6 +3,7 @@ from .errors import (
     AuthenticationFailedError,
     ClientError,
     ConnectionClosedError,
+    HeartbeatLostError,
     PrivilegedIntentsError,
 )
 from .intents import Intents
