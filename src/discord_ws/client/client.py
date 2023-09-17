@@ -174,6 +174,7 @@ class Client:
                 assert e is not None
 
                 if e.rcvd is None and e.sent is None:
+                    log.info("Connection lost, session can be resumed")
                     reconnect = True
                 elif e.sent is not None and not e.rcvd_then_sent:
                     # 1000 / 1001 causes our client to appear offline,
