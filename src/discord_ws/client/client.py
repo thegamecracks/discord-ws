@@ -179,6 +179,11 @@ class Client:
                     # 1000 / 1001 causes our client to appear offline,
                     # in which case we probably don't want to reconnect
                     reconnect = e.sent.code not in (1000, 1001)
+                    if reconnect:
+                        message = "Closed by us with %d, can reconnect"
+                    else:
+                        message = "Closed by us with %d, will not reconnect"
+                    log.info(message, e.sent.code)
                 elif e.rcvd is not None:
                     code = e.rcvd.code
                     code_name = GATEWAY_CLOSE_CODES.get(code)
