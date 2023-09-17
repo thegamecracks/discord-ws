@@ -33,7 +33,7 @@ import discord_ws
 
 async def main():
     client = await discord_ws.Client.create(
-        token="Your token here",
+        token="Bot YOUR_TOKEN_HERE",
         intents=discord_ws.Intents.standard(),
         on_dispatch=handle_event,
     )
