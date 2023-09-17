@@ -194,19 +194,14 @@ class Client:
                         and self._session_id is not None
                     )
 
-                    if reconnect and reconnect_argument:
-                        action = "Closed with %s, attempting to resume session"
+                    if reconnect:
+                        action = "Closed with %s, session can be resumed"
                         log.info(action, code_name)
-                    elif connect and reconnect_argument:
-                        action = "Closed with %s, attempting to reconnect"
+                    elif connect:
+                        action = "Closed with %s, session cannot be resumed"
                         log.info(action, code_name)
-                    elif reconnect_argument:
-                        action = "Closed with %s, cannot reconnect"
-                        log.error(action, code_name)
-                        exc = self._make_connection_closed_error(code, code_name)
-                        raise exc from None
                     else:
-                        action = "Closed with %s, will not reconnect"
+                        action = "Closed with %s, not allowed to reconnect"
                         log.error(action, code_name)
                         exc = self._make_connection_closed_error(code, code_name)
                         raise exc from None
