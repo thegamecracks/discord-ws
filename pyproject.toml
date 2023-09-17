@@ -33,7 +33,7 @@ classifiers = [
 Homepage = "https://github.com/thegamecracks/discord-ws"
 
 [project.optional-dependencies]
-dev = [
+tests = [
     "pytest>=7.4.2",
     "pytest-asyncio>=0.21.1",
 ]
