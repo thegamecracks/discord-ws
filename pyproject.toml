@@ -40,3 +40,19 @@ tests = [
 
 [tool.setuptools.dynamic]
 version = { attr = "discord_ws.__version__" }
+
+[tool.coverage.run]
+branch = true
+source_pkgs = ["discord_ws"]
+omit = ["src/discord_ws/__main__.py"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if (typing\\.)?TYPE_CHECKING:",
+    "if __name__ == \"__main__\":",
+    "\\s*\\.\\.\\.$",
+    "raise NotImplementedError",
+    "def __repr__",
+]
+include_namespace_packages = true
