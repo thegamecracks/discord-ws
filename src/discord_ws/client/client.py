@@ -162,13 +162,15 @@ class Client:
                 and self._session_id is not None
             ):
                 gateway_url = self._resume_gateway_url
+                session_id = self._session_id
             else:
                 gateway_url = self.gateway_url
+                session_id = None
                 self._heart.sequence = None
 
             try:
                 async with self._connect(gateway_url) as ws:
-                    await self._run_forever(session_id=self._session_id)
+                    await self._run_forever(session_id=session_id)
             except* ConnectionClosed as eg:
                 # We don't actually have multiple connections,
                 # what we care about is the first ConnectionClosed exception
