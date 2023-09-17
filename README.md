@@ -8,6 +8,16 @@ A bare-bones asynchronous Python wrapper for the Discord Gateway API.
 > on PyPI, which is written by a different author. For now, I am not planning
 > to release this project on PyPI.
 
+## Features
+
+- Fully implements Discord's [connection lifecycle]
+- Allows receiving JSON-encoded payloads (not ETF)
+- Can switch between plain text and [zlib transport compression]
+- Provides access to raw dispatch events via callback mechanism
+
+[connection lifecycle]: https://discord.com/developers/docs/topics/gateway#connections
+[zlib transport compression]: https://discord.com/developers/docs/topics/gateway#encoding-and-compression
+
 ## Usage
 
 Assuming you have Python 3.11+ and Git installed, you can install this library
