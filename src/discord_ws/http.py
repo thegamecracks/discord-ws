@@ -29,7 +29,7 @@ def _get_project_url(
         type_, url = type_url.split(", ", 1)
         if type_ == label:
             return url
-    raise ValueError(f"Could not find project url for: {label!r}")
+    raise ValueError(f"Could not find project url for: {label!r}")  # pragma: no cover
 
 
 def _create_user_agent(metadata: importlib.metadata.PackageMetadata) -> str:
