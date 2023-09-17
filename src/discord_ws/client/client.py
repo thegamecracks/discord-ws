@@ -241,16 +241,9 @@ class Client:
     async def _run_forever(self, *, session_id: str | None) -> None:
         async with (
             self._create_stream(),
-            self._heart,
+            self._heart.stay_alive(),
             asyncio.TaskGroup() as tg,
         ):
-            # We are expecting a hello event here
-            # https://discord.com/developers/docs/topics/gateway#hello-event
-            await asyncio.wait_for(self._receive_event(), timeout=60.0)
-            assert self._heart.interval is not None
-
-            tg.create_task(self._heart.run())
-
             if session_id is None:
                 tg.create_task(self._identify())
             else:

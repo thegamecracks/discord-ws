@@ -4,8 +4,9 @@ import asyncio
 import json
 import logging
 import random
+from contextlib import asynccontextmanager
 
-from typing import TYPE_CHECKING, Self
+from typing import TYPE_CHECKING, AsyncIterator, Self
 
 if TYPE_CHECKING:
     from . import Client
@@ -47,32 +48,52 @@ class Heart:
     ) -> None:
         self.client = client
 
-        self.running = False
         self.interval = None
         self.acknowledged = True
         self.sequence = None
 
         self._beat_event = asyncio.Event()
 
-    async def __aenter__(self) -> Self:
-        self.running = True
-        return self
+    @asynccontextmanager
+    async def stay_alive(
+        self,
+        *,
+        wait_for_event: bool = True,
+    ) -> AsyncIterator[Self]:
+        """A context manager that keeps the heart alive.
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
-        self.running = False
-        self.interval = None
-        self.acknowledged = True
-        # self.sequence should not be reset because it needs to persist
-        # between connections when resuming
+        The client must have a connection established before this
+        context manager can be used.
 
-    async def run(self) -> None:
+        After exiting, the interval is cleared and must be reset again.
+
+        If the heartbeat is not acknowledged, the connection will be closed
+        and the current task cancelled.
+
+        :param wait_for_event:
+            When true, waits for an event to be received before starting
+            the heartbeat loop. At the start of a connection, this should
+            be the HELLO event that sets the heartbeat interval.
+        :raises asyncio.TimeoutError:
+            No event was received while waiting for an event.
+
+        """
+        try:
+            if wait_for_event:
+                await asyncio.wait_for(self.client._receive_event(), timeout=60.0)
+
+            async with asyncio.TaskGroup() as tg:
+                tg.create_task(self._run())
+                yield self
+        finally:
+            self.interval = None
+            self.acknowledged = True
+            # self.sequence should not be reset because it needs to persist
+            # between connections when resuming
+
+    async def _run(self) -> None:
         """Runs the heartbeat loop indefinitely."""
-        if not self.running:
-            raise RuntimeError(
-                "Heartbeat not ready to run; did you use async with heart?"
-            )
-
-        while self.running:
+        while True:
             await self._sleep()
             await self._send_heartbeat()
 
