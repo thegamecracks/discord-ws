@@ -9,6 +9,7 @@ import websockets.client
 from websockets.client import WebSocketClientProtocol
 from websockets.exceptions import ConnectionClosed
 
+from .backoff import ExponentialBackoff
 from .constants import (
     GATEWAY_CANNOT_RESUME_CLOSE_CODES,
     GATEWAY_CLOSE_CODES,
@@ -79,6 +80,7 @@ class Client:
         self.on_dispatch = on_dispatch
 
         self._heart = Heart(self)
+        self._reconnect_backoff = ExponentialBackoff()
         self._stream: Stream | None = None
 
         self._current_websocket = None
@@ -215,8 +217,7 @@ class Client:
             if not reconnect_argument:
                 break
 
-            # TODO: exponential backoff
-            duration = 1.0
+            duration = self._reconnect_backoff()
             log.debug("Waiting %.3fs before reconnecting", duration)
             await asyncio.sleep(duration)
 
