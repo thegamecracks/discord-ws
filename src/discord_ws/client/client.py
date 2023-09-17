@@ -178,7 +178,7 @@ class Client:
                 elif e.sent is not None and not e.rcvd_then_sent:
                     # 1000 / 1001 causes our client to appear offline,
                     # in which case we probably don't want to reconnect
-                    reconnect = e.sent not in (1000, 1001)
+                    reconnect = e.sent.code not in (1000, 1001)
                 elif e.rcvd is not None:
                     code = e.rcvd.code
                     code_name = GATEWAY_CLOSE_CODES.get(code)
