@@ -3,7 +3,7 @@ import textwrap
 
 import discord_ws
 
-TOKEN = ""
+TOKEN = "Bot YOUR_TOKEN_HERE"
 MAX_LENGTH = 100
 
 
