@@ -242,12 +242,11 @@ class Client:
         async with (
             self._create_stream(),
             self._heart.stay_alive(),
-            asyncio.TaskGroup() as tg,
         ):
             if session_id is None:
-                tg.create_task(self._identify())
+                await self._identify()
             else:
-                tg.create_task(self._resume(session_id))
+                await self._resume(session_id)
 
             while True:
                 await self._receive_event()
