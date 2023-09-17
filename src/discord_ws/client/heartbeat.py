@@ -1,15 +1,13 @@
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 import random
 from contextlib import asynccontextmanager
-
 from typing import TYPE_CHECKING, AsyncIterator, Self
 
 if TYPE_CHECKING:
-    from . import Client
+    from . import Client, Event
 
 log = logging.getLogger(__name__)
 
@@ -129,13 +127,14 @@ class Heart:
             task.cancel("Last heartbeat was not acknowledged")
             return
 
+        assert self.client._stream is not None
+
         payload = self._create_heartbeat_payload()
-        await self.client._ws.send(payload)
+        log.debug("Sending heartbeat, last sequence: %s", self.sequence)
+        await self.client._stream.send(payload)
 
         self._beat_event.clear()
         self.acknowledged = False
 
-    def _create_heartbeat_payload(self) -> str:
-        log.debug("Sending heartbeat, last sequence: %s", self.sequence)
-        payload = {"op": 1, "d": self.sequence}
-        return json.dumps(payload)
+    def _create_heartbeat_payload(self) -> Event:
+        return {"op": 1, "d": self.sequence}
