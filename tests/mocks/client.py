@@ -43,7 +43,7 @@ def client(
         on_dispatch=client_dispatch,
     )
 
-    monkeypatch.setattr(websockets.client, "connect", get_client_ws)
+    monkeypatch.setattr(websockets.client, "connect", get_client_ws, raising=False)
     monkeypatch.setattr(PlainTextStream, "__new__", get_client_stream)
     monkeypatch.setattr(ZLibStream, "__new__", get_client_stream)
 
