@@ -9,7 +9,7 @@ class Event(TypedDict):
     """
 
     op: int
-    d: Any
+    d: NotRequired[Any]
     s: NotRequired[int | None]
     t: NotRequired[str | None]
 
