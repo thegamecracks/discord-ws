@@ -16,7 +16,7 @@ from .constants import (
     GATEWAY_RECONNECT_CLOSE_CODES,
 )
 from .errors import _unwrap_first_exception
-from .events import DispatchEvent, Event
+from .events import DispatchEvent, Event, Hello, InvalidSession
 from .heartbeat import Heart
 from .stream import PlainTextStream, Stream, ZLibStream
 from discord_ws import constants
@@ -400,6 +400,7 @@ class Client:
 
         elif event["op"] == 9:
             # Invalid Session
+            event = cast(InvalidSession, event)
             log.debug("Session has been invalidated")
             if not event["d"]:
                 self._session_id = None
@@ -407,6 +408,7 @@ class Client:
 
         elif event["op"] == 10:
             # Hello
+            event = cast(Hello, event)
             log.debug("Received hello from gateway")
             self._heart.interval = event["d"]["heartbeat_interval"] / 1000
 

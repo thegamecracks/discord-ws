@@ -21,3 +21,21 @@ class DispatchEvent(TypedDict):
     d: Any
     s: int
     t: str
+
+
+class InvalidSession(TypedDict):
+    """Discord has invalidated the client's session and is requesting a reconnect."""
+
+    op: Literal[9]
+    d: bool
+
+
+class HelloData(TypedDict):
+    heartbeat_interval: int
+
+
+class Hello(TypedDict):
+    """Sent by Discord on each new connection providing the heartbeat interval."""
+
+    op: Literal[10]
+    d: HelloData
