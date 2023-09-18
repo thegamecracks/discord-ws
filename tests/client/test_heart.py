@@ -15,7 +15,7 @@ class HelloThenBlock:
     async def __call__(self):
         if not self.sent_hello:
             self.sent_hello = True
-            return {"op": 10, "d": {"heartbeat_interval": 0.25}}
+            return {"op": 10, "d": {"heartbeat_interval": 0.01}}
         fut = asyncio.get_running_loop().create_future()
         await fut
 
@@ -28,7 +28,7 @@ async def test_cancel_after_heartbeat(caplog, client, client_stream, client_ws):
     client._heart._rand.random.return_value = 0
 
     with pytest.raises(HeartbeatLostError):
-        async with asyncio.timeout(1):
+        async with asyncio.timeout(0.25):
             await client.run(reconnect=False)
 
     client_stream.send.assert_any_call({"op": 1, "d": None})
