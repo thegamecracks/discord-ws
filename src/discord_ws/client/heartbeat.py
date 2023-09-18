@@ -76,12 +76,6 @@ class Heart:
             # self.sequence should not be reset because it needs to persist
             # between connections when resuming
 
-    async def _run(self) -> None:
-        """Runs the heartbeat loop indefinitely."""
-        while True:
-            await self._sleep()
-            await self._send_heartbeat()
-
     def beat_soon(self) -> None:
         """Skips the current interval to trigger the next heartbeat."""
         self._beat_event.set()
@@ -101,6 +95,12 @@ class Heart:
         self._interval = interval
         async with self._interval_cond:
             self._interval_cond.notify_all()
+
+    async def _run(self) -> None:
+        """Runs the heartbeat loop indefinitely."""
+        while True:
+            await self._sleep()
+            await self._send_heartbeat()
 
     async def _sleep(self) -> None:
         """Sleeps until the next heartbeat interval.
