@@ -4,7 +4,7 @@ import asyncio
 import logging
 import random
 from contextlib import asynccontextmanager
-from typing import TYPE_CHECKING, AsyncIterator, Self
+from typing import TYPE_CHECKING, AsyncIterator, Self, cast
 
 from discord_ws.errors import HeartbeatLostError
 
@@ -16,12 +16,6 @@ log = logging.getLogger(__name__)
 
 class Heart:
     """Manages the heartbeat loop for a client's connections."""
-
-    interval: float | None
-    """
-    The heartbeat interval given by Discord.
-    This must be set before the heartbeat loop can be started.
-    """
 
     acknowledged: bool
     """
@@ -48,19 +42,16 @@ class Heart:
     ) -> None:
         self.client = client
 
-        self.interval = None
         self.acknowledged = True
         self.sequence = None
 
+        self._interval = None
+        self._interval_cond = asyncio.Condition()
         self._beat_event = asyncio.Event()
         self._rand = random.Random()
 
     @asynccontextmanager
-    async def stay_alive(
-        self,
-        *,
-        wait_for_event: bool = True,
-    ) -> AsyncIterator[Self]:
+    async def stay_alive(self) -> AsyncIterator[Self]:
         """A context manager that keeps the heart alive.
 
         The client must have a connection established before this
@@ -71,23 +62,16 @@ class Heart:
         If the heartbeat is not acknowledged, the connection will be closed
         and the current task cancelled.
 
-        :param wait_for_event:
-            When true, waits for an event to be received before starting
-            the heartbeat loop. At the start of a connection, this should
-            be the HELLO event that sets the heartbeat interval.
         :raises asyncio.TimeoutError:
-            No event was received while waiting for an event.
+            The heart's interval was not set in time.
 
         """
         try:
-            if wait_for_event:
-                await asyncio.wait_for(self.client._receive_event(), timeout=60.0)
-
             async with asyncio.TaskGroup() as tg:
                 tg.create_task(self._run())
                 yield self
         finally:
-            self.interval = None
+            await self.set_interval(None)
             self.acknowledged = True
             # self.sequence should not be reset because it needs to persist
             # between connections when resuming
@@ -102,12 +86,29 @@ class Heart:
         """Skips the current interval to trigger the next heartbeat."""
         self._beat_event.set()
 
+    @property
+    def interval(self) -> float | None:
+        """The heartbeat interval given by Discord.
+
+        This must be set using :meth:`set_interval()` before
+        the heartbeat loop can be started.
+
+        """
+        return self._interval
+
+    async def set_interval(self, interval: float | None) -> None:
+        """Sets the heartbeat interval, notifying the heart of any changes."""
+        self._interval = interval
+        async with self._interval_cond:
+            self._interval_cond.notify_all()
+
     async def _sleep(self) -> None:
         """Sleeps until the next heartbeat interval.
 
         .. seealso:: https://discord.com/developers/docs/topics/gateway#sending-heartbeats
 
         """
+        await asyncio.wait_for(self._wait_for_interval(), timeout=60.0)
         assert self.interval is not None
 
         jitter = self._rand.random()
@@ -118,6 +119,12 @@ class Heart:
             await asyncio.wait_for(self._beat_event.wait(), timeout)
         except asyncio.TimeoutError:
             pass
+
+    async def _wait_for_interval(self) -> float:
+        """Waits for the heartbeat interval to be set to a numeric value."""
+        async with self._interval_cond:
+            await self._interval_cond.wait_for(lambda: self.interval is not None)
+            return cast(float, self.interval)
 
     async def _send_heartbeat(self) -> None:
         """Sends a heartbeat payload to Discord."""
