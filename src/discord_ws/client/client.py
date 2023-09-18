@@ -66,7 +66,7 @@ class Client:
         gateway_url: str,
         token: str,
         intents: Intents,
-        on_dispatch: Callable[[DispatchEvent], Awaitable],
+        on_dispatch: Callable[[DispatchEvent], Any],
         user_agent: str | None = None,
         compress: bool = True,
     ) -> None:
