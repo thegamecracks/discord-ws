@@ -57,15 +57,10 @@ else:
     token = getpass.getpass("Token: ")
 
 
-def event_callback(event: DispatchEvent) -> None:
-    pass
-
-
 async def main():
     client = Client(
         token=f"Bot {token}",
         intents=args.intents,
-        on_dispatch=event_callback,
         compress=args.compression is not None,
     )
 

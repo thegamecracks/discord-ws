@@ -65,7 +65,6 @@ class Client:
         *,
         token: str,
         intents: Intents,
-        on_dispatch: Callable[[DispatchEvent], Any],
         gateway_url: str | None = None,
         user_agent: str | None = None,
         compress: bool = True,
@@ -75,9 +74,6 @@ class Client:
             The token to use for authenticating with the gateway.
         :param intents:
             The gateway intents to use when identifying with the gateway.
-        :param on_dispatch:
-            The callback function to invoke when an event is dispatched.
-            This can be a coroutine function or return an awaitable object.
         :param gateway_url:
             The URL to use when connecting to the gateway.
             If this is not provided, it will automatically be fetched
@@ -99,8 +95,8 @@ class Client:
         self.intents = intents
         self.user_agent = user_agent
         self.compress = compress
-        self.on_dispatch = on_dispatch
 
+        self._dispatch_func: Callable[[DispatchEvent], Any] | None = None
         self._heart = Heart(self)
         self._reconnect_backoff = ExponentialBackoff()
         self._stream: Stream | None = None
@@ -109,6 +105,15 @@ class Client:
         self._resume_gateway_url = None
         self._session_id = None
         self._dispatch_futures: set[asyncio.Future] = set()
+
+    def on_dispatch(self, func: Callable[[DispatchEvent], Any] | None) -> Self:
+        """Sets the callback function to invoke when an event is dispatched.
+
+        This can be a coroutine function or return an awaitable object.
+
+        """
+        self._dispatch_func = func
+        return self
 
     async def run(self, *, reconnect: bool = True) -> None:
         """Begins and maintains a connection to the gateway.
@@ -405,8 +410,11 @@ class Client:
             self._heart.acknowledged = True
 
     def _dispatch(self, event: DispatchEvent) -> None:
-        """Dispatches an event with :attr:`on_dispatch`."""
-        ret = self.on_dispatch(event)
+        """Dispatches an event using the callback assigned by :meth:`on_dispatch()`."""
+        if self._dispatch_func is None:
+            return
+
+        ret = self._dispatch_func(event)
         if inspect.iscoroutine(ret) or inspect.isawaitable(ret):
             ret = asyncio.ensure_future(ret)
         if asyncio.isfuture(ret):

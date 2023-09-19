@@ -45,8 +45,8 @@ async def main():
     client = discord_ws.Client(
         token="Bot YOUR_TOKEN_HERE",
         intents=discord_ws.Intents.standard(),
-        on_dispatch=handle_event,
     )
+    client.on_dispatch(handle_event)
 
     await client.run()
 

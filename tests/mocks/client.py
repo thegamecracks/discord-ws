@@ -14,7 +14,6 @@ def client() -> Client:
         gateway_url="wss://example.invalid",
         token="Bot TOKEN",
         intents=Intents.all(),
-        on_dispatch=lambda event: None,
     )
     return client
 
@@ -22,7 +21,7 @@ def client() -> Client:
 @pytest.fixture
 def client_dispatch(client) -> Mock:
     mock = Mock()
-    client.on_dispatch = mock
+    client.on_dispatch(mock)
     return mock
 
 

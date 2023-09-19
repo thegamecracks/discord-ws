@@ -16,8 +16,8 @@ async def main():
     client = discord_ws.Client(
         token=TOKEN,
         intents=discord_ws.Intents.standard(),
-        on_dispatch=handle_event,
     )
+    client.on_dispatch(handle_event)
 
     await client.run()
 
