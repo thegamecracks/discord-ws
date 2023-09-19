@@ -61,10 +61,9 @@ class PlainTextStream(Stream):
         self.client = client
 
     async def recv(self) -> Event:
-        while True:
-            data = await self.client._ws.recv()
-            log.debug("Received %d %s", len(data), _get_data_type(data))
-            return json.loads(data)
+        data = await self.client._ws.recv()
+        log.debug("Received %d %s", len(data), _get_data_type(data))
+        return json.loads(data)
 
     async def send(self, payload: Event) -> None:
         data = json.dumps(payload)
