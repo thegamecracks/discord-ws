@@ -3,7 +3,7 @@ import inspect
 import logging
 import sys
 from contextlib import asynccontextmanager
-from typing import Any, AsyncIterator, Awaitable, Callable, Self, cast
+from typing import Any, AsyncIterator, Callable, cast
 
 import websockets.client
 from websockets.client import WebSocketClientProtocol
@@ -31,6 +31,8 @@ from discord_ws.intents import Intents
 from discord_ws.metadata import get_distribution_metadata
 
 log = logging.getLogger(__name__)
+
+DispatchFunc = Callable[[DispatchEvent], Any]
 
 
 class Client:
@@ -96,7 +98,7 @@ class Client:
         self.user_agent = user_agent
         self.compress = compress
 
-        self._dispatch_func: Callable[[DispatchEvent], Any] | None = None
+        self._dispatch_func: DispatchFunc | None = None
         self._heart = Heart(self)
         self._reconnect_backoff = ExponentialBackoff()
         self._stream: Stream | None = None
@@ -106,14 +108,14 @@ class Client:
         self._session_id = None
         self._dispatch_futures: set[asyncio.Future] = set()
 
-    def on_dispatch(self, func: Callable[[DispatchEvent], Any] | None) -> Self:
+    def on_dispatch(self, func: DispatchFunc | None) -> DispatchFunc | None:
         """Sets the callback function to invoke when an event is dispatched.
 
         This can be a coroutine function or return an awaitable object.
 
         """
         self._dispatch_func = func
-        return self
+        return func
 
     async def run(self, *, reconnect: bool = True) -> None:
         """Begins and maintains a connection to the gateway.
