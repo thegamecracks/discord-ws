@@ -62,7 +62,7 @@ def event_callback(event: DispatchEvent) -> None:
 
 
 async def main():
-    client = await Client.create(
+    client = Client(
         token=f"Bot {token}",
         intents=args.intents,
         on_dispatch=event_callback,

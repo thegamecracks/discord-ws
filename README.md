@@ -42,7 +42,7 @@ import asyncio
 import discord_ws
 
 async def main():
-    client = await discord_ws.Client.create(
+    client = discord_ws.Client(
         token="Bot YOUR_TOKEN_HERE",
         intents=discord_ws.Intents.standard(),
         on_dispatch=handle_event,

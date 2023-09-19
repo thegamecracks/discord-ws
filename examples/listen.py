@@ -13,7 +13,7 @@ async def handle_event(event: discord_ws.DispatchEvent):
 
 
 async def main():
-    client = await discord_ws.Client.create(
+    client = discord_ws.Client(
         token=TOKEN,
         intents=discord_ws.Intents.standard(),
         on_dispatch=handle_event,

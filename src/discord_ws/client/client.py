@@ -63,13 +63,34 @@ class Client:
     def __init__(
         self,
         *,
-        gateway_url: str,
         token: str,
         intents: Intents,
         on_dispatch: Callable[[DispatchEvent], Any],
+        gateway_url: str | None = None,
         user_agent: str | None = None,
         compress: bool = True,
     ) -> None:
+        """
+        :param token:
+            The token to use for authenticating with the gateway.
+        :param intents:
+            The gateway intents to use when identifying with the gateway.
+        :param on_dispatch:
+            The callback function to invoke when an event is dispatched.
+            This can be a coroutine function or return an awaitable object.
+        :param gateway_url:
+            The URL to use when connecting to the gateway.
+            If this is not provided, it will automatically be fetched
+            from the Get Gateway HTTP endpoint during :meth:`Client.run()`.
+        :param user_agent:
+            An optional user agent used when connecting to the gateway,
+            overriding the library's default.
+        :param compress:
+            If true, zlib transport compression will be enabled for data received
+            by Discord. This is distinct from payload compression which is not
+            implemented by this library.
+
+        """
         if user_agent is None:
             user_agent = _create_user_agent(get_distribution_metadata())
 
@@ -89,53 +110,6 @@ class Client:
         self._session_id = None
         self._dispatch_futures: set[asyncio.Future] = set()
 
-    @classmethod
-    async def create(
-        cls,
-        *,
-        token: str,
-        intents: Intents,
-        on_dispatch: Callable[[DispatchEvent], Any],
-        user_agent: str | None = None,
-        compress: bool = True,
-    ) -> Self:
-        """
-        A shorthand for creating an :class:`httpx.AsyncClient` and retrieving
-        the gateway URL to construct the client.
-
-        :param token:
-            The token to use for authenticating with the gateway.
-        :param intents:
-            The gateway intents to use when identifying with the gateway.
-        :param on_dispatch:
-            The callback function to invoke when an event is dispatched.
-            This can be a coroutine function or return an awaitable object.
-        :param user_agent:
-            An optional user agent used when connecting to the gateway,
-            overriding the library's default.
-        :param compress:
-            If true, zlib transport compression will be enabled for data received
-            by Discord. This is distinct from payload compression which is not
-            implemented by this library.
-
-        """
-        from discord_ws import http
-
-        log.debug("Requesting gateway URL")
-        async with http.create_httpx_client(token=token) as client:
-            resp = await client.get("/gateway")
-            resp.raise_for_status()
-            gateway_url = resp.json()["url"]
-
-        return cls(
-            gateway_url=gateway_url,
-            token=token,
-            intents=intents,
-            on_dispatch=on_dispatch,
-            user_agent=user_agent or client.headers["User-Agent"],
-            compress=compress,
-        )
-
     async def run(self, *, reconnect: bool = True) -> None:
         """Begins and maintains a connection to the gateway.
 
@@ -146,6 +120,9 @@ class Client:
             where possible.
 
         """
+        if self.gateway_url is None:
+            self.gateway_url = await self._get_gateway_url()
+
         log.debug("Starting connection loop")
 
         reconnect_argument = reconnect
@@ -249,6 +226,16 @@ class Client:
             )
 
         return self._current_websocket
+
+    async def _get_gateway_url(self) -> str:
+        from discord_ws import http
+
+        log.debug("Requesting gateway URL")
+        async with http.create_httpx_client(token=self.token) as client:
+            client.headers["User-Agent"] = self.user_agent
+            resp = await client.get("/gateway")
+            resp.raise_for_status()
+            return resp.json()["url"]
 
     async def _run_forever(self, *, session_id: str | None) -> None:
         async with (
