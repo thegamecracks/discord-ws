@@ -21,7 +21,7 @@ class HelloThenBlock:
 
 
 @pytest.mark.asyncio
-async def test_cancel_after_heartbeat(caplog, client, client_stream, client_ws):
+async def test_lost_heartbeat(caplog, client, client_stream, client_ws):
     caplog.set_level(logging.DEBUG)
     client_stream.recv = HelloThenBlock()
     client._heart._rand = Mock(["random"])
