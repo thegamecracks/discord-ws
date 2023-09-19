@@ -41,19 +41,16 @@ class to establish a connection yourself:
 import asyncio
 import discord_ws
 
-async def main():
-    client = discord_ws.Client(
-        token="Bot YOUR_TOKEN_HERE",
-        intents=discord_ws.Intents.standard(),
-    )
-    client.on_dispatch(handle_event)
+client = discord_ws.Client(
+    token="Bot YOUR_TOKEN_HERE",
+    intents=discord_ws.Intents.standard(),
+)
 
-    await client.run()
-
+@client.on_dispatch
 async def handle_event(event: discord_ws.DispatchEvent):
     ...  # Do something with the events received from Discord
 
-asyncio.run(main())
+asyncio.run(client.run())
 ```
 
 [Developer Portal]: https://discord.com/developers/applications
