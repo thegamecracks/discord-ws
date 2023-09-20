@@ -350,7 +350,7 @@ class Client:
             event = cast(InvalidSession, event)
             log.debug("Session has been invalidated")
             if not event["d"]:
-                self._session_id = None
+                self._invalidate_session()
             await self._ws.close(1002, reason="Invalid Session ACK")
 
         elif event["op"] == 10:
@@ -376,6 +376,9 @@ class Client:
             self._dispatch_futures.add(ret)
             ret.add_done_callback(self._dispatch_futures.discard)
 
+    def _invalidate_session(self) -> None:
+        self._session_id = None
+
     def _handle_connection_closed(self, e: ConnectionClosed) -> bool:
         """
         Handles connection closure and either raises an exception or returns
@@ -399,7 +402,7 @@ class Client:
             reason = self._get_connection_closed_reason(e.rcvd)
 
             if code in GATEWAY_CANNOT_RESUME_CLOSE_CODES:
-                self._session_id = None
+                self._invalidate_session()
 
             if code not in GATEWAY_RECONNECT_CLOSE_CODES:
                 action = "Closed with %s, not allowed to reconnect"
