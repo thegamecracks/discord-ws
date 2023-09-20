@@ -5,7 +5,7 @@ from unittest.mock import Mock
 from discord_ws import Client, HeartbeatLostError
 from discord_ws.client import Event, Stream
 
-from tests.mocks import client, client_stream, client_ws
+from tests.mocks import client, client_stream, mock_websocket
 
 
 
@@ -61,7 +61,7 @@ def set_mock_heartbeat(client, client_stream, heartbeat):
 
 
 @pytest.mark.asyncio
-async def test_normal_heartbeat(client, client_stream, client_ws):
+async def test_normal_heartbeat(client, client_stream, mock_websocket):
     heartbeat = HelloThenLimitedAcknowledge(client)
     set_mock_heartbeat(client, client_stream, heartbeat)
 
@@ -77,7 +77,7 @@ async def test_normal_heartbeat(client, client_stream, client_ws):
 
 
 @pytest.mark.asyncio
-async def test_lost_heartbeat(client, client_stream, client_ws):
+async def test_lost_heartbeat(client, client_stream, mock_websocket):
     heartbeat = HelloThenBlock(client)
     set_mock_heartbeat(client, client_stream, heartbeat)
 
