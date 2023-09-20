@@ -141,12 +141,8 @@ class Client:
             connect = False
             reconnect = False
 
-            if (
-                reconnect
-                and self._resume_gateway_url is not None
-                and self._session_id is not None
-            ):
-                gateway_url = self._resume_gateway_url
+            if reconnect and self._can_resume():
+                gateway_url = cast(str, self._resume_gateway_url)
                 session_id = self._session_id
             else:
                 gateway_url = self.gateway_url
@@ -186,7 +182,7 @@ class Client:
                     reconnect = (
                         connect
                         and code not in GATEWAY_CANNOT_RESUME_CLOSE_CODES
-                        and self._session_id is not None
+                        and self._can_resume()
                     )
 
                     if reconnect:
@@ -243,6 +239,9 @@ class Client:
             resp = await client.get("/gateway")
             resp.raise_for_status()
             return resp.json()["url"]
+
+    def _can_resume(self) -> bool:
+        return self._resume_gateway_url is not None and self._session_id is not None
 
     async def _run_forever(self, *, session_id: str | None) -> None:
         async with (
