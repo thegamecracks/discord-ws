@@ -132,18 +132,13 @@ class Client:
 
         log.debug("Starting connection loop")
 
-        reconnect_argument = reconnect
+        first_connect = True
+        while first_connect or reconnect:
+            first_connect = False
 
-        connect = True
-        reconnect = False
-
-        while connect or reconnect:
-            connect = False
-            reconnect = False
-
-            if reconnect and self._can_resume():
+            if self._can_resume():
                 gateway_url = cast(str, self._resume_gateway_url)
-                session_id = self._session_id
+                session_id = cast(str, self._session_id)
             else:
                 gateway_url = self.gateway_url
                 session_id = None
@@ -160,11 +155,10 @@ class Client:
 
                 if e.rcvd is None and e.sent is None:
                     log.info("Connection lost, session can be resumed")
-                    reconnect = True
                 elif e.sent is not None and not e.rcvd_then_sent:
                     # 1000 / 1001 causes our client to appear offline,
                     # in which case we probably don't want to reconnect
-                    reconnect = e.sent.code not in (1000, 1001)
+                    reconnect = reconnect and e.sent.code not in (1000, 1001)
                     if reconnect:
                         message = "Closed by us with %d, can reconnect"
                     else:
@@ -178,38 +172,30 @@ class Client:
                     else:
                         code_name = f"{code} {code_name}"
 
-                    connect = code in GATEWAY_RECONNECT_CLOSE_CODES
-                    reconnect = (
-                        connect
-                        and code not in GATEWAY_CANNOT_RESUME_CLOSE_CODES
-                        and self._can_resume()
-                    )
+                    if code in GATEWAY_CANNOT_RESUME_CLOSE_CODES:
+                        self._session_id = None
 
-                    if reconnect:
-                        action = "Closed with %s, session can be resumed"
-                        log.info(action, code_name)
-                    elif connect:
-                        action = "Closed with %s, session cannot be resumed"
-                        log.info(action, code_name)
-                    else:
+                    if code not in GATEWAY_RECONNECT_CLOSE_CODES:
                         action = "Closed with %s, not allowed to reconnect"
                         log.error(action, code_name)
                         exc = self._make_connection_closed_error(code, code_name)
                         raise exc from None
+                    elif self._can_resume():
+                        action = "Closed with %s, session can be resumed"
+                        log.info(action, code_name)
+                    else:
+                        action = "Closed with %s, session cannot be resumed"
+                        log.info(action, code_name)
             except* HeartbeatLostError as eg:
-                if reconnect_argument:
-                    reconnect = True
-                else:
+                if not reconnect:
                     e = _unwrap_first_exception(eg)
                     assert e is not None
                     raise e from None
 
-            if not reconnect_argument:
-                break
-
-            duration = self._reconnect_backoff()
-            log.debug("Waiting %.3fs before reconnecting", duration)
-            await asyncio.sleep(duration)
+            if reconnect:
+                duration = self._reconnect_backoff()
+                log.debug("Waiting %.3fs before reconnecting", duration)
+                await asyncio.sleep(duration)
 
     async def close(self) -> None:
         """Gracefully closes the current connection."""
