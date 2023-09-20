@@ -10,7 +10,7 @@ import websockets.frames
 from websockets.client import WebSocketClientProtocol
 from websockets.exceptions import ConnectionClosed
 
-from .backoff import ExponentialBackoff
+from .backoff import Backoff, ExponentialBackoff
 from .constants import (
     GATEWAY_CANNOT_RESUME_CLOSE_CODES,
     GATEWAY_CLOSE_CODES,
@@ -39,6 +39,54 @@ DispatchFunc = Callable[[DispatchEvent], Any]
 class Client:
     """The websocket client for connecting to the Discord Gateway."""
 
+    gateway_url: str | None
+    """
+    The URL to use when connecting to the gateway.
+
+    If this is not provided, it will automatically be fetched
+    from the Get Gateway HTTP endpoint during :meth:`Client.run()`.
+
+    """
+
+    token: str
+    """The token to use for authenticating with the gateway."""
+
+    intents: Intents
+    """The gateway intents to use when identifying with the gateway."""
+
+    user_agent: str
+    """The user agent used when connecting to the gateway."""
+
+    compress: bool
+    """
+    If true, zlib transport compression will be enabled for data received
+    by Discord.
+
+    This is distinct from payload compression which is not implemented
+    by this library.
+
+    """
+
+    _dispatch_func: DispatchFunc | None
+    """The function to call when a dispatch event is received.
+
+    This is set by :meth:`on_dispatch()`.
+
+    """
+
+    _heart: Heart
+    """The heart used for maintaining heartbeats across connections."""
+
+    _reconnect_backoff: Backoff
+    """The backoff function used when reconnecting to Discord."""
+
+    _stream: Stream | None
+    """The stream object used for sending and receiving with the current connection.
+
+    This is set by :meth:`_create_stream()`.
+
+    """
+
     _current_websocket: WebSocketClientProtocol | None
     """
     The current connection to the Discord gateway, if any.
@@ -60,6 +108,14 @@ class Client:
     The session ID to use when resuming gateway connections.
 
     This is provided during the Ready gateway event.
+
+    """
+
+    _dispatch_futures: set[asyncio.Future]
+    """A set of any future-like objects returned by :attr:`_dispatch_func`.
+
+    This set only exists to maintain a strong reference to each future.
+    Once a future is completed, it is automatically removed from the set.
 
     """
 
@@ -99,15 +155,15 @@ class Client:
         self.user_agent = user_agent
         self.compress = compress
 
-        self._dispatch_func: DispatchFunc | None = None
+        self._dispatch_func = None
         self._heart = Heart(self)
         self._reconnect_backoff = ExponentialBackoff()
-        self._stream: Stream | None = None
+        self._stream = None
 
         self._current_websocket = None
         self._resume_gateway_url = None
         self._session_id = None
-        self._dispatch_futures: set[asyncio.Future] = set()
+        self._dispatch_futures = set()
 
     def on_dispatch(self, func: DispatchFunc | None) -> DispatchFunc | None:
         """Sets the callback function to invoke when an event is dispatched.
