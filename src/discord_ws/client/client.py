@@ -352,7 +352,7 @@ class Client:
             "d": {
                 "token": self.token,
                 "session_id": session_id,
-                "session_id": self._heart.sequence,
+                "seq": self._heart.sequence,
             },
         }
 
