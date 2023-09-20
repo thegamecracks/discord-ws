@@ -385,7 +385,7 @@ class Client:
         a boolean indicating if the client is allowed to reconnect.
         """
         if e.rcvd is None and e.sent is None:
-            log.info("Connection lost, session can be resumed")
+            log.info("Connection lost, can reconnect")
             return True
         elif e.sent is not None and not e.rcvd_then_sent:
             # 1000 / 1001 causes our client to appear offline,
