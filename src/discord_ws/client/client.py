@@ -30,6 +30,7 @@ from discord_ws.errors import (
 from discord_ws.http import _create_user_agent
 from discord_ws.intents import Intents
 from discord_ws.metadata import get_distribution_metadata
+from discord_ws.types import GatewayPresenceUpdate
 
 log = logging.getLogger(__name__)
 
@@ -66,6 +67,9 @@ class Client:
     by this library.
 
     """
+
+    presence: GatewayPresenceUpdate | None
+    """The presence for the client to use when identifying to the gateway."""
 
     _dispatch_func: DispatchFunc | None
     """The function to call when a dispatch event is received.
@@ -127,6 +131,7 @@ class Client:
         gateway_url: str | None = None,
         user_agent: str | None = None,
         compress: bool = True,
+        presence: GatewayPresenceUpdate | None = None,
     ) -> None:
         """
         :param token:
@@ -144,6 +149,9 @@ class Client:
             If true, zlib transport compression will be enabled for data received
             by Discord. This is distinct from payload compression which is not
             implemented by this library.
+        :param presence:
+            An optional presence for the client to use when identifying
+            to the gateway.
 
         """
         if user_agent is None:
@@ -154,6 +162,7 @@ class Client:
         self.intents = intents
         self.user_agent = user_agent
         self.compress = compress
+        self.presence = presence
 
         self._dispatch_func = None
         self._heart = Heart(self)
@@ -220,6 +229,26 @@ class Client:
                 duration = self._reconnect_backoff()
                 log.debug("Waiting %.3fs before reconnecting", duration)
                 await asyncio.sleep(duration)
+
+    async def set_presence(
+        self,
+        presence: GatewayPresenceUpdate,
+        *,
+        persistent: bool = True,
+    ) -> None:
+        """Sets the bot's presence for the current connection, if any.
+
+        :param presence: The payload to be sent over the gateway.
+        :param persistent:
+            If true, this also sets the :attr:`presence` attribute used
+            when reconnecting.
+
+        """
+        if self._stream is not None:
+            payload: Event = {"op": 3, "d": presence}
+            await self._stream.send(payload)
+        if persistent:
+            self.presence = presence
 
     async def close(self) -> None:
         """Gracefully closes the current connection."""
@@ -334,22 +363,22 @@ class Client:
 
     async def _create_identify_payload(self) -> Event:
         metadata = get_distribution_metadata()
-        return {
-            "op": 2,
-            "d": {
-                "token": self.token,
-                "intents": self.intents,
-                "properties": {
-                    "os": sys.platform,
-                    "browser": metadata["Name"],
-                    "device": metadata["Name"],
-                },
-                # TODO: payload compression
-                # TODO: large_threshold
-                # TODO: sharding
-                # TODO: presence
+        d = {
+            "token": self.token,
+            "intents": self.intents,
+            "properties": {
+                "os": sys.platform,
+                "browser": metadata["Name"],
+                "device": metadata["Name"],
             },
+            # TODO: payload compression
+            # TODO: large_threshold
+            # TODO: sharding
         }
+        if self.presence is not None:
+            d["presence"] = self.presence
+
+        return {"op": 2, "d": d}
 
     async def _resume(self, session_id: str) -> None:
         """Resumes the given session with Discord.
