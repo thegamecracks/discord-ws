@@ -26,7 +26,6 @@ GATEWAY_RECONNECT_CLOSE_CODES = (
     4002,
     4003,
     4005,
-    4006,
     4007,
     4008,
     4009,
