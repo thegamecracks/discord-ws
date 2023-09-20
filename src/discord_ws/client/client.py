@@ -41,7 +41,7 @@ class Client:
 
     _current_websocket: WebSocketClientProtocol | None
     """
-    The current websocket connection, if any.
+    The current connection to the Discord gateway, if any.
 
     This attribute should not be used directly; see the :attr:`_ws` property.
 
