@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 from typing import Any, AsyncIterator, Callable, cast
 
 import websockets.client
+import websockets.frames
 from websockets.client import WebSocketClientProtocol
 from websockets.exceptions import ConnectionClosed
 
@@ -152,40 +153,7 @@ class Client:
                 # what we care about is the first ConnectionClosed exception
                 e = _unwrap_first_exception(eg)
                 assert e is not None
-
-                if e.rcvd is None and e.sent is None:
-                    log.info("Connection lost, session can be resumed")
-                elif e.sent is not None and not e.rcvd_then_sent:
-                    # 1000 / 1001 causes our client to appear offline,
-                    # in which case we probably don't want to reconnect
-                    reconnect = reconnect and e.sent.code not in (1000, 1001)
-                    if reconnect:
-                        message = "Closed by us with %d, can reconnect"
-                    else:
-                        message = "Closed by us with %d, will not reconnect"
-                    log.info(message, e.sent.code)
-                elif e.rcvd is not None:
-                    code = e.rcvd.code
-                    code_name = GATEWAY_CLOSE_CODES.get(code)
-                    if code_name is None:
-                        code_name = str(e.rcvd)
-                    else:
-                        code_name = f"{code} {code_name}"
-
-                    if code in GATEWAY_CANNOT_RESUME_CLOSE_CODES:
-                        self._session_id = None
-
-                    if code not in GATEWAY_RECONNECT_CLOSE_CODES:
-                        action = "Closed with %s, not allowed to reconnect"
-                        log.error(action, code_name)
-                        exc = self._make_connection_closed_error(code, code_name)
-                        raise exc from None
-                    elif self._can_resume():
-                        action = "Closed with %s, session can be resumed"
-                        log.info(action, code_name)
-                    else:
-                        action = "Closed with %s, session cannot be resumed"
-                        log.info(action, code_name)
+                reconnect = self._handle_connection_closed(e) and reconnect
             except* HeartbeatLostError as eg:
                 if not reconnect:
                     e = _unwrap_first_exception(eg)
@@ -407,6 +375,53 @@ class Client:
         if asyncio.isfuture(ret):
             self._dispatch_futures.add(ret)
             ret.add_done_callback(self._dispatch_futures.discard)
+
+    def _handle_connection_closed(self, e: ConnectionClosed) -> bool:
+        """
+        Handles connection closure and either raises an exception or returns
+        a boolean indicating if the client is allowed to reconnect.
+        """
+        if e.rcvd is None and e.sent is None:
+            log.info("Connection lost, session can be resumed")
+            return True
+        elif e.sent is not None and not e.rcvd_then_sent:
+            # 1000 / 1001 causes our client to appear offline,
+            # in which case we probably don't want to reconnect
+            reconnect = e.sent.code not in (1000, 1001)
+            if reconnect:
+                message = "Closed by us with %d, can reconnect"
+            else:
+                message = "Closed by us with %d, will not reconnect"
+            log.info(message, e.sent.code)
+            return reconnect
+        elif e.rcvd is not None:
+            code = e.rcvd.code
+            reason = self._get_connection_closed_reason(e.rcvd)
+
+            if code in GATEWAY_CANNOT_RESUME_CLOSE_CODES:
+                self._session_id = None
+
+            if code not in GATEWAY_RECONNECT_CLOSE_CODES:
+                action = "Closed with %s, not allowed to reconnect"
+                log.error(action, reason)
+                exc = self._make_connection_closed_error(code, reason)
+                raise exc from None
+            elif self._can_resume():
+                action = "Closed with %s, session can be resumed"
+                log.info(action, reason)
+            else:
+                action = "Closed with %s, session cannot be resumed"
+                log.info(action, reason)
+            return True
+        # We only have e.sent, but e.rcvd_then_sent is True?
+        log.warning("Ignoring unusual ConnectionClosed exception", exc_info=e)
+        return True
+
+    def _get_connection_closed_reason(self, close: websockets.frames.Close) -> str:
+        reason = GATEWAY_CLOSE_CODES.get(close.code)
+        if reason is not None:
+            return f"{close.code} {reason}"
+        return str(close)
 
     def _make_connection_closed_error(
         self,
