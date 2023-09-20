@@ -328,9 +328,13 @@ class Client:
 
         """
         assert self._stream is not None
+        payload = await self._create_identify_payload()
+        log.debug("Sending identify payload")
+        await self._stream.send(payload)
 
+    async def _create_identify_payload(self) -> Event:
         metadata = get_distribution_metadata()
-        payload: Event = {
+        return {
             "op": 2,
             "d": {
                 "token": self.token,
@@ -347,9 +351,6 @@ class Client:
             },
         }
 
-        log.debug("Sending identify payload")
-        await self._stream.send(payload)
-
     async def _resume(self, session_id: str) -> None:
         """Resumes the given session with Discord.
 
@@ -357,7 +358,12 @@ class Client:
 
         """
         assert self._stream is not None
-        payload: Event = {
+        payload = await self._create_resume_payload(session_id)
+        log.debug("Sending resume payload")
+        await self._stream.send(payload)
+
+    async def _create_resume_payload(self, session_id: str) -> Event:
+        return {
             "op": 6,
             "d": {
                 "token": self.token,
@@ -365,9 +371,6 @@ class Client:
                 "seq": self._heart.sequence,
             },
         }
-
-        log.debug("Sending resume payload")
-        await self._stream.send(payload)
 
     async def _receive_event(self) -> None:
         """Receives and processes an event from the websocket.
