@@ -2,16 +2,15 @@ import asyncio
 import pytest
 from unittest.mock import Mock
 
-from discord_ws import Client, HeartbeatLostError
-from discord_ws.client import Event, Stream
+from discord_ws import HeartbeatLostError
+from discord_ws.client import Event, Stream, StreamWebsocket
 
 from tests.mocks import client, client_stream, mock_websocket
 
 
-
 class HelloThenAcknowledge(Stream):
-    def __init__(self, client: Client) -> None:
-        self.client = client
+    def __init__(self, ws: StreamWebsocket) -> None:
+        self.ws = ws
         self.sent_hello = False
         self.heartbeats = 0
         self._heartbeat_event = asyncio.Event()
@@ -35,8 +34,8 @@ class AllHeartbeatsReceived(BaseException):
 
 
 class HelloThenLimitedAcknowledge(HelloThenAcknowledge):
-    def __init__(self, client: Client, *, expected_heartbeats: int = 10) -> None:
-        super().__init__(client)
+    def __init__(self, ws: StreamWebsocket, *, expected_heartbeats: int = 10) -> None:
+        super().__init__(ws)
         self.expected_heartbeats = expected_heartbeats
 
     async def recv(self) -> Event:

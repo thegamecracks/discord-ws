@@ -1,14 +1,9 @@
-from __future__ import annotations
-
 import json
 import logging
 import zlib
-from typing import TYPE_CHECKING, Any, Protocol, Self
+from typing import Any, Protocol, Self
 
 from .events import Event
-
-if TYPE_CHECKING:
-    from . import Client
 
 log = logging.getLogger(__name__)
 
@@ -21,6 +16,16 @@ def _get_data_type(data: bytes | str) -> str:
     return "bytes"
 
 
+class StreamWebsocket(Protocol):
+    """The websocket interface to be wrapped by :class:`Stream`."""
+
+    async def recv(self) -> bytes | str:
+        ...
+
+    async def send(self, data: bytes | str, /) -> Any:
+        ...
+
+
 class Stream(Protocol):
     """Manages receiving and sending events between the client and Discord gateway.
 
@@ -28,7 +33,7 @@ class Stream(Protocol):
 
     """
 
-    client: Client
+    ws: StreamWebsocket
 
     async def __aenter__(self) -> Self:
         return self
@@ -57,24 +62,24 @@ class Stream(Protocol):
 class PlainTextStream(Stream):
     """Implements a gateway stream with no transport or payload compression."""
 
-    def __init__(self, client: Client) -> None:
-        self.client = client
+    def __init__(self, ws: StreamWebsocket) -> None:
+        self.ws = ws
 
     async def recv(self) -> Event:
-        data = await self.client._ws.recv()
+        data = await self.ws.recv()
         log.debug("Received %d %s", len(data), _get_data_type(data))
         return json.loads(data)
 
     async def send(self, payload: Event) -> None:
         data = json.dumps(payload)
-        await self.client._ws.send(data)
+        await self.ws.send(data)
 
 
 class ZLibStream(Stream):
     """Implements a gateway stream with zlib transport compression."""
 
-    def __init__(self, client: Client) -> None:
-        self.client = client
+    def __init__(self, ws: StreamWebsocket) -> None:
+        self.ws = ws
 
         self._decompress_obj: zlib._Decompress | None = None
         self._decompress_buffer: bytearray | None = None
@@ -90,7 +95,7 @@ class ZLibStream(Stream):
 
     async def recv(self) -> Event:
         while True:
-            data = await self.client._ws.recv()
+            data = await self.ws.recv()
 
             assert isinstance(data, bytes)
             assert self._decompress_buffer is not None
@@ -111,4 +116,4 @@ class ZLibStream(Stream):
     async def send(self, payload: Event) -> None:
         data = json.dumps(payload)
         log.debug("Sending %d %s", len(data), _get_data_type(data))
-        await self.client._ws.send(data)
+        await self.ws.send(data)

@@ -335,9 +335,9 @@ class Client:
     async def _create_stream(self) -> AsyncIterator[Stream]:
         """Creates the stream to be used for communicating with the gateway."""
         if self.compress:
-            stream = ZLibStream(self)
+            stream = ZLibStream(self._ws)
         else:
-            stream = PlainTextStream(self)
+            stream = PlainTextStream(self._ws)
 
         self._stream = stream
         try:
