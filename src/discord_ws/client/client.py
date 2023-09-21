@@ -16,7 +16,6 @@ from .constants import (
     GATEWAY_CLOSE_CODES,
     GATEWAY_RECONNECT_CLOSE_CODES,
 )
-from .errors import _unwrap_first_exception
 from .events import DispatchEvent, Event, Hello, InvalidSession
 from .heartbeat import Heart
 from .stream import PlainTextStream, Stream, ZLibStream
@@ -213,17 +212,11 @@ class Client:
             try:
                 async with self._connect(gateway_url) as ws:
                     await self._run_forever(session_id=session_id)
-            except* ConnectionClosed as eg:
-                # We don't actually have multiple connections,
-                # what we care about is the first ConnectionClosed exception
-                e = _unwrap_first_exception(eg)
-                assert e is not None
+            except ConnectionClosed as e:
                 reconnect = self._handle_connection_closed(e) and reconnect
-            except* HeartbeatLostError as eg:
+            except HeartbeatLostError as e:
                 if not reconnect:
-                    e = _unwrap_first_exception(eg)
-                    assert e is not None
-                    raise e from None
+                    raise
 
             if reconnect:
                 duration = self._reconnect_backoff()

@@ -6,6 +6,7 @@ import random
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING, AsyncIterator, Self, cast
 
+from .errors import _unwrap_first_exception
 from discord_ws.errors import HeartbeatLostError
 
 if TYPE_CHECKING:
@@ -64,12 +65,20 @@ class Heart:
 
         :raises asyncio.TimeoutError:
             The heart's interval was not set in time.
+        :raises HeartbeatLostError:
+            The last heartbeat was not acknowledged in time.
 
         """
         try:
             async with asyncio.TaskGroup() as tg:
                 tg.create_task(self._run())
                 yield self
+        except* Exception as eg:
+            # Since we only start one task, it's safe for us to raise
+            # the first exception from the group
+            e = _unwrap_first_exception(eg)
+            assert e is not None
+            raise e from None
         finally:
             await self.set_interval(None)
             self.acknowledged = True
