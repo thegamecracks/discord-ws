@@ -67,6 +67,12 @@ class Client:
 
     """
 
+    large_threshold: int | None
+    """
+    The threshold where offline guild members are no longer sent,
+    provided when identifying with the gateway.
+    """
+
     presence: GatewayPresenceUpdate | None
     """The presence for the client to use when identifying to the gateway."""
 
@@ -130,6 +136,7 @@ class Client:
         gateway_url: str | None = None,
         user_agent: str | None = None,
         compress: bool = True,
+        large_threshold: int | None = None,
         presence: GatewayPresenceUpdate | None = None,
     ) -> None:
         """
@@ -148,6 +155,9 @@ class Client:
             If true, zlib transport compression will be enabled for data received
             by Discord. This is distinct from payload compression which is not
             implemented by this library.
+        :param large_threshold:
+            The threshold where offline guild members are no longer sent,
+            provided when identifying with the gateway.
         :param presence:
             An optional presence for the client to use when identifying
             to the gateway.
@@ -161,6 +171,7 @@ class Client:
         self.intents = intents
         self.user_agent = user_agent
         self.compress = compress
+        self.large_threshold = large_threshold
         self.presence = presence
 
         self._dispatch_func = None
@@ -365,9 +376,10 @@ class Client:
                 "device": metadata["Name"],
             },
             # TODO: payload compression
-            # TODO: large_threshold
             # TODO: sharding
         }
+        if self.large_threshold is not None:
+            d["large_threshold"] = self.large_threshold
         if self.presence is not None:
             d["presence"] = self.presence
 
