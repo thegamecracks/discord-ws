@@ -16,6 +16,7 @@ from .constants import (
     GATEWAY_CLOSE_CODES,
     GATEWAY_RECONNECT_CLOSE_CODES,
 )
+from .errors import _unwrap_first_exception
 from .events import DispatchEvent, Event, Hello, InvalidSession
 from .heartbeat import Heart
 from .stream import PlainTextStream, Stream, ZLibStream
@@ -201,6 +202,9 @@ class Client:
 
         Use the :meth:`close()` method to gracefully close the connection.
 
+        This method may raise an :class:`ExceptionGroup` so it is
+        recommended to handle errors using ``except*`` syntax.
+
         :param reconnect:
             If True, this method will reconnect to Discord
             where possible.
@@ -235,9 +239,13 @@ class Client:
             try:
                 async with self._connect(gateway_url) as ws:
                     await self._run_forever(session_id=session_id)
-            except ConnectionClosed as e:
+            except* ConnectionClosed as eg:
+                # Multiple errors should still be from the same connection,
+                # so we're only interested in handling the first occurrence
+                e = _unwrap_first_exception(eg)
+                assert e is not None
                 reconnect = self._handle_connection_closed(e) and reconnect
-            except GatewayInterrupt:
+            except* GatewayInterrupt:
                 if not reconnect:
                     raise
 
@@ -311,14 +319,15 @@ class Client:
 
                 while True:
                     await self._receive_event()
-        except GatewayReconnect:
+        except* GatewayReconnect:
             await self._ws.close(1002, reason="Reconnect ACK")
             raise
-        except HeartbeatLostError:
+        except* HeartbeatLostError:
             await self._ws.close(1002, reason="Heartbeat ACK lost")
             raise
-        except SessionInvalidated as e:
-            if not e.resumable:
+        except* SessionInvalidated as eg:
+            predicate = lambda e: isinstance(e, SessionInvalidated) and not e.resumable
+            if eg.subgroup(predicate) is not None:
                 self._invalidate_session()
             await self._ws.close(1002, reason="Invalid Session ACK")
             raise

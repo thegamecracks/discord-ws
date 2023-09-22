@@ -70,7 +70,7 @@ async def test_normal_heartbeat(client, client_stream, mock_websocket):
     except* (AllHeartbeatsReceived, HeartbeatLostError):
         pass
     else:
-        assert False  # expected AllHeartbeatsReceived to be raised
+        assert False, "Expected AllHeartbeatsReceived to be raised"
 
     assert heartbeat.heartbeats >= heartbeat.expected_heartbeats
 
@@ -80,8 +80,12 @@ async def test_lost_heartbeat(client, client_stream, mock_websocket):
     heartbeat = HelloThenBlock(client)
     set_mock_heartbeat(client, client_stream, heartbeat)
 
-    with pytest.raises(HeartbeatLostError):
+    try:
         async with asyncio.timeout(0.25):
             await client.run(reconnect=False)
+    except* HeartbeatLostError:
+        pass
+    else:
+        assert False, "Expected HeartbeatLostError to be raised"
 
     assert heartbeat.heartbeats == 1

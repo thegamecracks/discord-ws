@@ -73,12 +73,6 @@ class Heart:
             async with asyncio.TaskGroup() as tg:
                 tg.create_task(self._run())
                 yield self
-        except* Exception as eg:
-            # Since we only start one task, it's safe for us to raise
-            # the first exception from the group
-            e = _unwrap_first_exception(eg)
-            assert e is not None
-            raise e from None
         finally:
             await self.set_interval(None)
             self.acknowledged = True
