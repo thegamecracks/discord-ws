@@ -51,6 +51,43 @@ class PrivilegedIntentsError(ConnectionClosedError):
         ).format(intents)
 
 
+class GatewayInterrupt(ClientError):
+    """
+    The client has been asked by the gateway to interrupt the current connection.
+
+    This exception and its subclasses are expected to be raised during normal
+    operation, and should not impact the client's ability to reconnect to the
+    gateway.
+
+    """
+
+
+class GatewayReconnect(GatewayInterrupt):
+    """The client has been asked to reconnect to the gateway.
+
+    This corresponds with the Reconnect (9) opcode.
+
+    """
+
+    def __init__(self) -> None:
+        super().__init__("Discord has requested our client to reconnect.")
+
+
+class SessionInvalidated(GatewayInterrupt):
+    """The client's session has been invalidated by the gateway.
+
+    This corresponds with the Invalid Session (9) opcode.
+
+    """
+
+    resumable: bool
+    """Indicates if the session can be resumed."""
+
+    def __init__(self, resumable: bool) -> None:
+        super().__init__("Discord has invalidated our session.")
+        self.resumable = resumable
+
+
 class HeartbeatLostError(ClientError):
     """A heartbeat acknowledgement from the server was missed."""
 

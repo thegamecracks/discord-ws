@@ -23,8 +23,11 @@ from discord_ws import constants
 from discord_ws.errors import (
     AuthenticationFailedError,
     ConnectionClosedError,
+    GatewayInterrupt,
+    GatewayReconnect,
     HeartbeatLostError,
     PrivilegedIntentsError,
+    SessionInvalidated,
 )
 from discord_ws.http import _create_user_agent
 from discord_ws.intents import Intents
@@ -201,6 +204,15 @@ class Client:
         :param reconnect:
             If True, this method will reconnect to Discord
             where possible.
+        :raises GatewayReconnect:
+            The gateway has asked us to reconnect.
+            Only raised when reconnect is False.
+        :raises HeartbeatLostError:
+            The gateway failed to acknowledge our heartbeat.
+            Only raised when reconnect is False.
+        :raises SessionInvalidated:
+            The gateway has invalidated our session.
+            Only raised when reconnect is False.
 
         """
         if self.gateway_url is None:
@@ -225,7 +237,7 @@ class Client:
                     await self._run_forever(session_id=session_id)
             except ConnectionClosed as e:
                 reconnect = self._handle_connection_closed(e) and reconnect
-            except HeartbeatLostError as e:
+            except GatewayInterrupt:
                 if not reconnect:
                     raise
 
@@ -287,17 +299,29 @@ class Client:
         return self._resume_gateway_url is not None and self._session_id is not None
 
     async def _run_forever(self, *, session_id: str | None) -> None:
-        async with (
-            self._create_stream(),
-            self._heart.stay_alive(),
-        ):
-            if session_id is None:
-                await self._identify()
-            else:
-                await self._resume(session_id)
+        try:
+            async with (
+                self._create_stream(),
+                self._heart.stay_alive(),
+            ):
+                if session_id is None:
+                    await self._identify()
+                else:
+                    await self._resume(session_id)
 
-            while True:
-                await self._receive_event()
+                while True:
+                    await self._receive_event()
+        except GatewayReconnect:
+            await self._ws.close(1002, reason="Reconnect ACK")
+            raise
+        except HeartbeatLostError:
+            await self._ws.close(1002, reason="Heartbeat ACK lost")
+            raise
+        except SessionInvalidated as e:
+            if not e.resumable:
+                self._invalidate_session()
+            await self._ws.close(1002, reason="Invalid Session ACK")
+            raise
 
     def _add_gateway_params(self, url: str) -> str:
         """Adds query parameters to the given gateway URL.
@@ -436,15 +460,13 @@ class Client:
         elif event["op"] == 7:
             # Reconnect
             log.debug("Received request to reconnect")
-            await self._ws.close(1002, reason="Reconnect ACK")
+            raise GatewayReconnect()
 
         elif event["op"] == 9:
             # Invalid Session
             event = cast(InvalidSession, event)
             log.debug("Session has been invalidated")
-            if not event["d"]:
-                self._invalidate_session()
-            await self._ws.close(1002, reason="Invalid Session ACK")
+            raise SessionInvalidated(resumable=event["d"])
 
         elif event["op"] == 10:
             # Hello

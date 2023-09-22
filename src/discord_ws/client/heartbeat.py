@@ -138,8 +138,7 @@ class Heart:
     async def _send_heartbeat(self) -> None:
         """Sends a heartbeat payload to Discord."""
         if not self.acknowledged:
-            log.debug("Heartbeat not acknowledged, closing connection")
-            await self.client._ws.close(1002, reason="Heartbeat ACK lost")
+            log.debug("Heartbeat not acknowledged")
             raise HeartbeatLostError()
 
         assert self.client._stream is not None
