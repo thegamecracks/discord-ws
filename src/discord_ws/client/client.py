@@ -206,8 +206,6 @@ class Client:
         if self.gateway_url is None:
             self.gateway_url = await self._get_gateway_url()
 
-        log.debug("Starting connection loop")
-
         first_connect = True
         while first_connect or reconnect:
             first_connect = False
@@ -220,6 +218,8 @@ class Client:
                 session_id = None
                 self._heart.sequence = None
 
+            log.info("Connecting to the gateway (session_id: %s)", session_id)
+
             try:
                 async with self._connect(gateway_url) as ws:
                     await self._run_forever(session_id=session_id)
@@ -231,7 +231,7 @@ class Client:
 
             if reconnect:
                 duration = self._reconnect_backoff()
-                log.debug("Waiting %.3fs before reconnecting", duration)
+                log.info("Waiting %.3fs before reconnecting", duration)
                 await asyncio.sleep(duration)
 
     async def set_presence(
@@ -498,8 +498,6 @@ class Client:
                 self._invalidate_session()
 
             if code not in GATEWAY_RECONNECT_CLOSE_CODES:
-                action = "Closed with %s, not allowed to reconnect"
-                log.error(action, reason)
                 exc = self._make_connection_closed_error(code, reason)
                 raise exc from None
             elif self._can_resume():
@@ -510,7 +508,7 @@ class Client:
                 log.info(action, reason)
             return True
         # We only have e.sent, but e.rcvd_then_sent is True?
-        log.warning("Ignoring unusual ConnectionClosed exception", exc_info=e)
+        log.exception("Ignoring unusual ConnectionClosed exception")
         return True
 
     def _get_connection_closed_reason(self, close: websockets.frames.Close) -> str:
