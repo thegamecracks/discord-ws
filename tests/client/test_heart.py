@@ -5,6 +5,7 @@ from unittest.mock import Mock
 from discord_ws import HeartbeatLostError
 from discord_ws.client import Event, Stream, StreamWebsocket
 
+from tests import raises_exception_group
 from tests.mocks import client, client_stream, mock_websocket
 
 
@@ -64,13 +65,9 @@ async def test_normal_heartbeat(client, client_stream, mock_websocket):
     heartbeat = HelloThenLimitedAcknowledge(client)
     set_mock_heartbeat(client, client_stream, heartbeat)
 
-    try:
+    with raises_exception_group((AllHeartbeatsReceived, HeartbeatLostError)):
         async with asyncio.timeout(0.25):
             await client.run(reconnect=False)
-    except* (AllHeartbeatsReceived, HeartbeatLostError):
-        pass
-    else:
-        assert False, "Expected AllHeartbeatsReceived to be raised"
 
     assert heartbeat.heartbeats >= heartbeat.expected_heartbeats
 
@@ -80,12 +77,8 @@ async def test_lost_heartbeat(client, client_stream, mock_websocket):
     heartbeat = HelloThenBlock(client)
     set_mock_heartbeat(client, client_stream, heartbeat)
 
-    try:
+    with raises_exception_group(HeartbeatLostError):
         async with asyncio.timeout(0.25):
             await client.run(reconnect=False)
-    except* HeartbeatLostError:
-        pass
-    else:
-        assert False, "Expected HeartbeatLostError to be raised"
 
     assert heartbeat.heartbeats == 1
