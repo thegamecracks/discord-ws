@@ -3,7 +3,6 @@ import pytest
 from discord_ws import GatewayReconnect, SessionInvalidated
 
 from tests import raises_exception_group
-from tests.mocks import client, client_stream, mock_websocket
 
 
 @pytest.mark.asyncio

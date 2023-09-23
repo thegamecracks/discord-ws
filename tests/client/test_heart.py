@@ -6,7 +6,6 @@ from discord_ws import HeartbeatLostError
 from discord_ws.client import Event, Stream, StreamWebsocket
 
 from tests import raises_exception_group
-from tests.mocks import client, client_stream, mock_websocket
 
 
 class HelloThenAcknowledge(Stream):
