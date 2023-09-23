@@ -60,7 +60,7 @@ def set_mock_heartbeat(client, client_stream, heartbeat):
 
 
 @pytest.mark.asyncio
-async def test_normal_heartbeat(client, client_stream, mock_websocket):
+async def test_normal_heartbeat(client, client_stream):
     heartbeat = HelloThenLimitedAcknowledge(client)
     set_mock_heartbeat(client, client_stream, heartbeat)
 
@@ -72,7 +72,7 @@ async def test_normal_heartbeat(client, client_stream, mock_websocket):
 
 
 @pytest.mark.asyncio
-async def test_lost_heartbeat(client, client_stream, mock_websocket):
+async def test_lost_heartbeat(client, client_stream):
     heartbeat = HelloThenBlock(client)
     set_mock_heartbeat(client, client_stream, heartbeat)
 

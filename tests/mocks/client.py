@@ -25,6 +25,7 @@ def client_dispatch(client) -> Mock:
 @pytest.fixture
 def client_stream(
     client,
+    mock_websocket,
     monkeypatch: pytest.MonkeyPatch,
 ) -> AsyncMock:
     def get_client_stream(client, *args, **kwargs):
