@@ -6,7 +6,6 @@ import random
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING, AsyncIterator, Self, cast
 
-from .errors import _unwrap_first_exception
 from discord_ws.errors import HeartbeatLostError
 
 if TYPE_CHECKING:
