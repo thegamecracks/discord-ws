@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, AsyncIterator, Self, cast
 from discord_ws.errors import HeartbeatLostError
 
 if TYPE_CHECKING:
-    from . import Client, Event
+    from . import Event, Stream
 
 log = logging.getLogger(__name__)
 
@@ -36,12 +36,7 @@ class Heart:
     This attribute should be updated by the caller.
     """
 
-    def __init__(
-        self,
-        client: Client,
-    ) -> None:
-        self.client = client
-
+    def __init__(self) -> None:
         self.acknowledged = True
         self.sequence = None
 
@@ -51,7 +46,7 @@ class Heart:
         self._rand = random.Random()
 
     @asynccontextmanager
-    async def stay_alive(self) -> AsyncIterator[Self]:
+    async def stay_alive(self, stream: Stream) -> AsyncIterator[Self]:
         """A context manager that keeps the heart alive.
 
         The client must have a connection established before this
@@ -62,6 +57,7 @@ class Heart:
         If the heartbeat is not acknowledged, the connection will be closed
         and the current task cancelled.
 
+        :param stream: The stream to send heartbeats to.
         :raises asyncio.TimeoutError:
             The heart's interval was not set in time.
         :raises HeartbeatLostError:
@@ -70,7 +66,7 @@ class Heart:
         """
         try:
             async with asyncio.TaskGroup() as tg:
-                tg.create_task(self._run())
+                tg.create_task(self._run(stream))
                 yield self
         finally:
             await self.set_interval(None)
@@ -98,11 +94,11 @@ class Heart:
         async with self._interval_cond:
             self._interval_cond.notify_all()
 
-    async def _run(self) -> None:
+    async def _run(self, stream: Stream) -> None:
         """Runs the heartbeat loop indefinitely."""
         while True:
             await self._sleep()
-            await self._send_heartbeat()
+            await self._send_heartbeat(stream)
 
     async def _sleep(self) -> None:
         """Sleeps until the next heartbeat interval.
@@ -128,17 +124,15 @@ class Heart:
             await self._interval_cond.wait_for(lambda: self.interval is not None)
             return cast(float, self.interval)
 
-    async def _send_heartbeat(self) -> None:
+    async def _send_heartbeat(self, stream: Stream) -> None:
         """Sends a heartbeat payload to Discord."""
         if not self.acknowledged:
             log.debug("Heartbeat not acknowledged")
             raise HeartbeatLostError()
 
-        assert self.client._stream is not None
-
         payload = self._create_heartbeat_payload()
         log.debug("Sending heartbeat, last sequence: %s", self.sequence)
-        await self.client._stream.send(payload)
+        await stream.send(payload)
 
         self._beat_event.clear()
         self.acknowledged = False

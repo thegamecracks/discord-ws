@@ -179,7 +179,7 @@ class Client:
         self.presence = presence
 
         self._dispatch_func = None
-        self._heart = Heart(self)
+        self._heart = Heart()
         self._reconnect_backoff = ExponentialBackoff()
         self._stream = None
 
@@ -308,7 +308,7 @@ class Client:
 
     async def _handle_connection(self, *, session_id: str | None) -> None:
         try:
-            async with self._create_stream(), self._heart.stay_alive():
+            async with self._create_stream() as stream, self._heart.stay_alive(stream):
                 if session_id is None:
                     await self._identify()
                 else:
