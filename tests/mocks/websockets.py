@@ -46,8 +46,10 @@ def create_websocket() -> MockWebsocket:
 
 
 @pytest.fixture
-def mock_websocket(monkeypatch: pytest.MonkeyPatch):
+def mock_websocket(monkeypatch: pytest.MonkeyPatch) -> MockWebsocket:
     def mock_connect(*args, **kwargs):
-        return create_websocket()
+        return ws
 
+    ws = create_websocket()
     monkeypatch.setattr(websockets.client, "connect", mock_connect, raising=False)
+    return ws
