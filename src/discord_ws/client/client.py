@@ -238,7 +238,7 @@ class Client:
 
             try:
                 async with self._connect(gateway_url) as ws:
-                    await self._run_forever(session_id=session_id)
+                    await self._handle_connection(session_id=session_id)
             except* ConnectionClosed as eg:
                 # Multiple errors should still be from the same connection,
                 # so we're only interested in handling the first occurrence
@@ -306,28 +306,27 @@ class Client:
     def _can_resume(self) -> bool:
         return self._resume_gateway_url is not None and self._session_id is not None
 
-    async def _run_forever(self, *, session_id: str | None) -> None:
+    async def _handle_connection(self, *, session_id: str | None) -> None:
         try:
-            async with (
-                self._create_stream(),
-                self._heart.stay_alive(),
-            ):
+            async with self._create_stream(), self._heart.stay_alive():
                 if session_id is None:
                     await self._identify()
                 else:
                     await self._resume(session_id)
-
-                while True:
-                    await self._receive_event()
-        except* GatewayReconnect:
-            await self._ws.close(1002, reason="Reconnect ACK")
-            raise
+                await self._receive_loop(session_id=session_id)
         except* HeartbeatLostError:
             await self._ws.close(1002, reason="Heartbeat ACK lost")
             raise
-        except* SessionInvalidated as eg:
-            predicate = lambda e: isinstance(e, SessionInvalidated) and not e.resumable
-            if eg.subgroup(predicate) is not None:
+
+    async def _receive_loop(self, *, session_id: str | None) -> None:
+        try:
+            while True:
+                await self._receive_event()
+        except GatewayReconnect:
+            await self._ws.close(1002, reason="Reconnect ACK")
+            raise
+        except SessionInvalidated as e:
+            if not e.resumable:
                 self._invalidate_session()
             await self._ws.close(1002, reason="Invalid Session ACK")
             raise
