@@ -245,7 +245,7 @@ class Client:
                 e = _unwrap_first_exception(eg)
                 assert e is not None
                 reconnect = self._handle_connection_closed(e) and reconnect
-            except* GatewayInterrupt:
+            except* (GatewayInterrupt, HeartbeatLostError):
                 if not reconnect:
                     raise
 
