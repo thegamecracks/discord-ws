@@ -65,7 +65,7 @@ class GatewayInterrupt(ClientError):
 class GatewayReconnect(GatewayInterrupt):
     """The client has been asked to reconnect to the gateway.
 
-    This corresponds with the Reconnect (9) opcode.
+    This corresponds with the Reconnect (7) opcode.
 
     """
 
