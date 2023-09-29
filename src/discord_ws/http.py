@@ -25,7 +25,7 @@ def _get_project_url(
     .. seealso:: https://packaging.python.org/en/latest/specifications/core-metadata/#project-url-multiple-use
 
     """
-    for type_url in metadata.get_all("Project-URL"):
+    for type_url in metadata.get_all("Project-URL", ()):
         type_, url = type_url.split(", ", 1)
         if type_ == label:
             return url
