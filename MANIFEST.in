@@ -1,0 +1,2 @@
+prune *venv
+recursive-include src py.typed
