@@ -3,7 +3,8 @@ name: Lint with Pyright
 on:
   push:
     paths:
-      - '**.py'
+      - 'src/**.py'
+      - 'tests/**.py'
 
 jobs:
   lint:
