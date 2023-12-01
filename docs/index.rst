@@ -10,7 +10,8 @@ Welcome to discord-ws's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-
+.. automodule:: discord_ws
+   :imported-members:
 
 Indices and tables
 ==================
