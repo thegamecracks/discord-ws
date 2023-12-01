@@ -31,6 +31,7 @@ autoclasstoc_sections = [
 
 autodoc_default_options = {
     "members": True,
+    "show-inheritance": True,
 }
 
 # -- Options for HTML output -------------------------------------------------
