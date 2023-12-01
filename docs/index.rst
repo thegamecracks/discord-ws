@@ -8,6 +8,12 @@ Welcome to discord-ws's documentation!
 
 ``discord-ws`` is a minimal, asynchronous Python wrapper for the Discord Gateway API.
 
+.. note::
+
+   This library is **not** associated with `discord-ws <https://pypi.org/project/discord-ws/>`_
+   on PyPI, which is written by a different author.
+   For now, there are no plans to release this package on PyPI.
+
 Features
 --------
 
