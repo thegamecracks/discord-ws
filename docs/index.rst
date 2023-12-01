@@ -76,8 +76,7 @@ Client API Reference
    .. autoclasstoc::
 
 .. autoclass:: discord_ws.DispatchEvent
-
-   .. autoclasstoc::
+   :undoc-members:
 
 Gateway Intents
 ---------------
