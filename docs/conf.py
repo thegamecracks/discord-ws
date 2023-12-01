@@ -19,6 +19,7 @@ extensions = [
     "autoclasstoc",
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
+    "sphinx.ext.intersphinx",
 ]
 
 templates_path = ["_templates"]
@@ -32,6 +33,10 @@ autoclasstoc_sections = [
 autodoc_default_options = {
     "members": True,
     "show-inheritance": True,
+}
+
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3", None),
 }
 
 # -- Options for HTML output -------------------------------------------------
