@@ -66,6 +66,14 @@ If you do want to write a script, import the library and use the
 Resources
 ---------
 
+.. toctree::
+   :maxdepth: 1
+   :caption: Documents:
+
+   changelog
+
+External links:
+
 - GitHub Repository: https://github.com/thegamecracks/discord-ws
 - Discord Docs: https://discord.com/developers/docs/topics/gateway
 
