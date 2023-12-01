@@ -1,0 +1,41 @@
+name: Publish docs
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          cache: pip
+          cache-dependency-path: pyproject.toml
+          python-version-file: pyproject.toml
+
+      - run: pip install .[docs]
+      - run: ./docs/make html
+
+      - uses: actions/configure-pages@v3
+      - uses: actions/upload-pages-artifact@v2
+        with:
+          path: 'docs/_build/html/'
+
+  deploy:
+    # https://github.com/actions/deploy-pages
+    needs: build
+
+    permissions:
+      pages: write      # to deploy to Pages
+      id-token: write   # to verify the deployment originates from an appropriate source
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/deploy-pages@v2
+        id: deployment
