@@ -16,11 +16,18 @@ release = discord_ws.__version__
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
+    "autoclasstoc",
     "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
 ]
 
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
+
+autoclasstoc_sections = [
+    "public-attrs",
+    "public-methods",
+]
 
 autodoc_default_options = {
     "members": True,

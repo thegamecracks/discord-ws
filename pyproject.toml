@@ -35,6 +35,7 @@ Homepage = "https://github.com/thegamecracks/discord-ws"
 [project.optional-dependencies]
 docs = [
     "Sphinx>=7.2.6",
+    "autoclasstoc>=1.6.0",
 ]
 tests = [
     "pytest>=7.4.2",
