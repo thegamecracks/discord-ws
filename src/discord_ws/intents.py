@@ -182,9 +182,9 @@ class Intents(enum.IntFlag):
         """Returns a flag with all privileged intents enabled."""
         # fmt: off
         return (
-            Intents.GUILD_PRESENCES
-            | Intents.GUILD_MEMBERS
-            | Intents.MESSAGE_CONTENT
+            cls.GUILD_PRESENCES
+            | cls.GUILD_MEMBERS
+            | cls.MESSAGE_CONTENT
         )
         # fmt: on
 
