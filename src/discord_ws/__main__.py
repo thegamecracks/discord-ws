@@ -5,7 +5,6 @@ import getpass
 import logging
 import os
 
-from discord_ws import DispatchEvent
 from . import Client, Intents
 
 
