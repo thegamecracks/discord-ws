@@ -84,39 +84,14 @@ Gateway Intents
 
 .. autoclass:: discord_ws.Intents
 
-   .. autoclasstoc::
-
 Exceptions
 ----------
 
 .. autoclass:: discord_ws.AuthenticationFailedError
-
-   .. autoclasstoc::
-
 .. autoclass:: discord_ws.ClientError
-
-   .. autoclasstoc::
-
 .. autoclass:: discord_ws.ConnectionClosedError
-
-   .. autoclasstoc::
-
 .. autoclass:: discord_ws.GatewayInterrupt
-
-   .. autoclasstoc::
-
 .. autoclass:: discord_ws.GatewayReconnect
-
-   .. autoclasstoc::
-
 .. autoclass:: discord_ws.HeartbeatLostError
-
-   .. autoclasstoc::
-
 .. autoclass:: discord_ws.PrivilegedIntentsError
-
-   .. autoclasstoc::
-
 .. autoclass:: discord_ws.SessionInvalidated
-
-   .. autoclasstoc::
