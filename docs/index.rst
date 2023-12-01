@@ -6,17 +6,6 @@
 Welcome to discord-ws's documentation!
 ======================================
 
-.. contents:: Table of Contents:
-   :depth: 2
-   :local:
-
-Indices and tables
-------------------
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
 Client API Reference
 --------------------
 
