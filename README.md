@@ -58,6 +58,7 @@ asyncio.run(client.run())
 
 ## Resources
 
+- Documentation: https://thegamecracks.github.io/discord-ws/
 - Discord Docs: https://discord.com/developers/docs/topics/gateway
 - Websockets Library: https://websockets.readthedocs.io/en/stable/index.html
 
