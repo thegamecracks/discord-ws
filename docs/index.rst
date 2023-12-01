@@ -6,12 +6,32 @@
 Welcome to discord-ws's documentation!
 ======================================
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+.. contents::
+   :depth: 2
+   :local:
 
-.. automodule:: discord_ws
-   :imported-members:
+Client API Reference
+--------------------
+
+.. autoclass:: discord_ws.Client
+.. autoclass:: discord_ws.DispatchEvent
+
+Gateway Intents
+---------------
+
+.. autoclass:: discord_ws.Intents
+
+Exceptions
+----------
+
+.. autoclass:: discord_ws.AuthenticationFailedError
+.. autoclass:: discord_ws.ClientError
+.. autoclass:: discord_ws.ConnectionClosedError
+.. autoclass:: discord_ws.GatewayInterrupt
+.. autoclass:: discord_ws.GatewayReconnect
+.. autoclass:: discord_ws.HeartbeatLostError
+.. autoclass:: discord_ws.PrivilegedIntentsError
+.. autoclass:: discord_ws.SessionInvalidated
 
 Indices and tables
 ==================
