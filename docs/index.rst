@@ -10,6 +10,13 @@ Welcome to discord-ws's documentation!
    :depth: 2
    :local:
 
+Indices and tables
+------------------
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
+
 Client API Reference
 --------------------
 
@@ -62,10 +69,3 @@ Exceptions
 .. autoclass:: discord_ws.SessionInvalidated
 
    .. autoclasstoc::
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
