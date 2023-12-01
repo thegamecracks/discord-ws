@@ -6,7 +6,7 @@
 Welcome to discord-ws's documentation!
 ======================================
 
-.. contents::
+.. contents:: Table of Contents:
    :depth: 2
    :local:
 
