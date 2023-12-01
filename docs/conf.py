@@ -7,9 +7,9 @@ import discord_ws
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'discord-ws'
-copyright = '2023, thegamecracks'
-author = 'thegamecracks'
+project = "discord-ws"
+copyright = "2023, thegamecracks"
+author = "thegamecracks"
 release = discord_ws.__version__
 
 # -- General configuration ---------------------------------------------------
@@ -17,13 +17,13 @@ release = discord_ws.__version__
 
 extensions = []
 
-templates_path = ['_templates']
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+templates_path = ["_templates"]
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'alabaster'
-html_static_path = ['_static']
+html_theme = "alabaster"
+html_static_path = ["_static"]
