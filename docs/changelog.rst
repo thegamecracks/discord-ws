@@ -1,6 +1,25 @@
 Changelog
 =========
 
+v0.5.0
+------
+
+**Full Changelog**: https://github.com/thegamecracks/discord-ws/compare/v0.4.0...v0.5.0
+
+Fixes
+^^^^^
+
+- Fix py.typed marker not being included in the package
+- Use ``if __name__ == "__main__":`` condition in ``discord_ws/__main__.py``
+  to prevent side effects when imported
+
+Documentation
+^^^^^^^^^^^^^
+
+- Add this documentation site
+
+  If you found me from the repository, 👋 hello!
+
 v0.4.0
 ------
 
