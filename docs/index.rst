@@ -72,8 +72,6 @@ If you do want to write a script, import the library and use the
 Resources
 ---------
 
-External links:
-
 - GitHub Repository: https://github.com/thegamecracks/discord-ws
 - Discord Docs: https://discord.com/developers/docs/topics/gateway
 
