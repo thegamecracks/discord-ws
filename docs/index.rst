@@ -97,11 +97,11 @@ Gateway Intents
 Exceptions
 ----------
 
-.. autoclass:: discord_ws.AuthenticationFailedError
 .. autoclass:: discord_ws.ClientError
 .. autoclass:: discord_ws.ConnectionClosedError
+.. autoclass:: discord_ws.AuthenticationFailedError
+.. autoclass:: discord_ws.PrivilegedIntentsError
 .. autoclass:: discord_ws.GatewayInterrupt
 .. autoclass:: discord_ws.GatewayReconnect
-.. autoclass:: discord_ws.HeartbeatLostError
-.. autoclass:: discord_ws.PrivilegedIntentsError
 .. autoclass:: discord_ws.SessionInvalidated
+.. autoclass:: discord_ws.HeartbeatLostError
