@@ -30,6 +30,7 @@ autoclasstoc_sections = [
     "public-methods",
 ]
 
+autodoc_class_signature = "separated"
 autodoc_default_options = {
     "members": True,
     "show-inheritance": True,
