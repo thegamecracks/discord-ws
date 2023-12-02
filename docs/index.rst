@@ -3,8 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to discord-ws's documentation!
-======================================
+Welcome to discord-ws!
+======================
 
 ``discord-ws`` is a minimal, asynchronous Python wrapper for the Discord Gateway API.
 
