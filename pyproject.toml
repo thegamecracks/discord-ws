@@ -36,6 +36,7 @@ Homepage = "https://github.com/thegamecracks/discord-ws"
 docs = [
     "Sphinx>=7.2.6",
     "autoclasstoc>=1.6.0",
+    "furo>=2023.9.10",
 ]
 tests = [
     "pytest>=7.4.2",

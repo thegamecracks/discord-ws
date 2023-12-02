@@ -14,11 +14,9 @@ Welcome to discord-ws!
    on PyPI, which is written by a different author.
    For now, there are no plans to release this package on PyPI.
 
-Documents
----------
-
 .. toctree::
    :maxdepth: 1
+   :hidden:
 
    changelog
 

@@ -1,10 +1,6 @@
 Changelog
 =========
 
-.. contents::
-   :depth: 2
-   :local:
-
 v0.4.0
 ------
 
