@@ -4,7 +4,7 @@ Changelog
 v0.5.0
 ------
 
-**Full Changelog**: https://github.com/thegamecracks/discord-ws/compare/v0.4.0...v0.5.0
+Full Changelog: https://github.com/thegamecracks/discord-ws/compare/v0.4.0...v0.5.0
 
 Fixes
 ^^^^^
@@ -23,7 +23,7 @@ Documentation
 v0.4.0
 ------
 
-**Full Changelog**: https://github.com/thegamecracks/discord-ws/compare/v0.3.0...v0.4.0
+Full Changelog: https://github.com/thegamecracks/discord-ws/compare/v0.3.0...v0.4.0
 
 Breaking Changes
 ^^^^^^^^^^^^^^^^
@@ -55,7 +55,7 @@ Fixes
 v0.3.0
 ------
 
-**Full Changelog**: https://github.com/thegamecracks/discord-ws/compare/v0.2.0...v0.3.0
+Full Changelog: https://github.com/thegamecracks/discord-ws/compare/v0.2.0...v0.3.0
 
 Breaking Changes
 ^^^^^^^^^^^^^^^^
@@ -78,7 +78,7 @@ Fixes
 v0.2.0
 ------
 
-**Full Changelog**: https://github.com/thegamecracks/discord-ws/compare/v0.1.0...v0.2.0
+Full Changelog: https://github.com/thegamecracks/discord-ws/compare/v0.1.0...v0.2.0
 
 New Features
 ^^^^^^^^^^^^
