@@ -181,7 +181,7 @@ class Intents(enum.IntFlag):
     def privileged(cls) -> Self:
         """Returns a flag with all privileged intents enabled."""
         # fmt: off
-        return (
+        return (  # type: ignore  # This correctly returns Self@Intents
             cls.GUILD_PRESENCES
             | cls.GUILD_MEMBERS
             | cls.MESSAGE_CONTENT
