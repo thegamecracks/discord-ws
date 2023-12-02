@@ -14,6 +14,14 @@ Welcome to discord-ws's documentation!
    on PyPI, which is written by a different author.
    For now, there are no plans to release this package on PyPI.
 
+Documents
+---------
+
+.. toctree::
+   :maxdepth: 1
+
+   changelog
+
 Features
 --------
 
@@ -65,12 +73,6 @@ If you do want to write a script, import the library and use the
 
 Resources
 ---------
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Documents:
-
-   changelog
 
 External links:
 
