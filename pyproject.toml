@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools>=70", "setuptools-scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -43,8 +43,7 @@ tests = [
     "pytest-asyncio>=0.21.1",
 ]
 
-[tool.setuptools.dynamic]
-version = { attr = "discord_ws.__version__" }
+[tool.setuptools_scm]
 
 [tool.coverage.run]
 branch = true

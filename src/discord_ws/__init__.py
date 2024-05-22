@@ -11,4 +11,11 @@ from .errors import (
 )
 from .intents import Intents
 
-__version__ = "0.5.0"
+
+def _get_version() -> str:
+    from importlib.metadata import version
+
+    return version("discord-ws")
+
+
+__version__ = _get_version()
