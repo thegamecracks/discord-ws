@@ -208,12 +208,21 @@ class Client:
         :param reconnect:
             If True, this method will reconnect to Discord
             where possible.
+        :raises AuthenticationFailedError:
+            The client's token was incorrect.
+            Can be raised even if reconnect is True.
+        :raises ConnectionClosedError:
+            An error caused the connection to close.
+            Certain error codes can raise this even if reconnect is True.
         :raises GatewayReconnect:
             The gateway has asked us to reconnect.
             Only raised when reconnect is False.
         :raises HeartbeatLostError:
             The gateway failed to acknowledge our heartbeat.
             Only raised when reconnect is False.
+        :raises PrivilegedIntentsError:
+            The client requested privileged intents that were not enabled.
+            Can be raised even if reconnect is True.
         :raises SessionInvalidated:
             The gateway has invalidated our session.
             Only raised when reconnect is False.
