@@ -88,6 +88,7 @@ Client API Reference
    .. autoclasstoc::
 
 .. autoclass:: discord_ws.DispatchEvent
+.. autoclass:: discord_ws.Shard
 
 Gateway Intents
 ---------------

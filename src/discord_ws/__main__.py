@@ -5,7 +5,7 @@ import getpass
 import logging
 import os
 
-from . import Client, Intents
+from . import Client, Intents, Shard
 
 
 async def main():
@@ -48,6 +48,12 @@ async def main():
         dest="compression",
         help="Use zlib transport compression",
     )
+    parser.add_argument(
+        "--shard",
+        default=None,
+        help="A shard identifier in the format id:total",
+        type=lambda s: Shard(*map(int, s.split(":", 1))),
+    )
 
     args = parser.parse_args()
 
@@ -65,6 +71,7 @@ async def main():
         token=f"Bot {token}",
         intents=args.intents,
         compress=args.compression is not None,
+        shard=args.shard,
     )
 
     await client.run()

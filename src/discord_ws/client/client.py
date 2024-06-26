@@ -3,7 +3,7 @@ import inspect
 import logging
 import sys
 from contextlib import asynccontextmanager
-from typing import Any, AsyncIterator, Callable, cast
+from typing import Any, AsyncIterator, Callable, NamedTuple, cast
 
 import websockets.client
 import websockets.frames
@@ -38,6 +38,28 @@ from discord_ws.types import GatewayPresenceUpdate
 log = logging.getLogger(__name__)
 
 DispatchFunc = Callable[[DispatchEvent], Any]
+
+
+class Shard(NamedTuple):
+    """A pair indicating which shard a connection belongs to.
+
+    This determines which guilds a connection will receive events from,
+    according to the formula ``shard_id = (guild_id >> 22) % num_shards``.
+    Shard ID 0 will also receive events from DMs.
+
+    ``shard_id`` doesn't necessarily have to be unique, nor does ``num_shards``
+    have to be the same across all connections.
+
+    .. seealso:: https://discord.com/developers/docs/topics/gateway#sharding
+
+    .. versionadded:: unreleased
+
+    """
+
+    shard_id: int
+    """The ID of the current connection. Must be within ``[0, num_shards)``."""
+    num_shards: int
+    """The total number of shards. Must be 1 or greater."""
 
 
 class Client:
@@ -79,6 +101,13 @@ class Client:
 
     presence: GatewayPresenceUpdate | None
     """The presence for the client to use when identifying to the gateway."""
+
+    shard: Shard | None
+    """The shard identifier used for routing traffic.
+
+    .. versionadded:: unreleased
+
+    """
 
     _dispatch_func: DispatchFunc | None
     """The function to call when a dispatch event is received.
@@ -142,6 +171,7 @@ class Client:
         compress: bool = True,
         large_threshold: int | None = None,
         presence: GatewayPresenceUpdate | None = None,
+        shard: Shard | None = None,
     ) -> None:
         """
         :param token:
@@ -165,6 +195,10 @@ class Client:
         :param presence:
             An optional presence for the client to use when identifying
             to the gateway.
+        :param shard:
+            The shard identifier used for routing traffic.
+
+            .. versionadded:: unreleased
 
         """
         if user_agent is None:
@@ -177,6 +211,7 @@ class Client:
         self.compress = compress
         self.large_threshold = large_threshold
         self.presence = presence
+        self.shard = shard
 
         self._dispatch_func = None
         self._heart = Heart()
@@ -417,12 +452,13 @@ class Client:
                 "device": metadata["Name"],
             },
             # TODO: payload compression
-            # TODO: sharding
         }
         if self.large_threshold is not None:
             d["large_threshold"] = self.large_threshold
         if self.presence is not None:
             d["presence"] = self.presence
+        if self.shard is not None:
+            d["shard"] = [self.shard.shard_id, self.shard.num_shards]
 
         return {"op": 2, "d": d}
 

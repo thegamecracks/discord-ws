@@ -1,4 +1,4 @@
-from .client import Client, DispatchEvent
+from .client import Client, DispatchEvent, Shard
 from .errors import (
     AuthenticationFailedError,
     ClientError,
