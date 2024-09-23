@@ -2,7 +2,7 @@ from typing import Self
 from unittest.mock import AsyncMock, Mock
 
 import pytest
-import websockets.client
+import websockets.asyncio.client
 from websockets.exceptions import ConnectionClosed
 from websockets.frames import Close
 
@@ -51,5 +51,5 @@ def mock_websocket(monkeypatch: pytest.MonkeyPatch) -> MockWebsocket:
         return ws
 
     ws = create_websocket()
-    monkeypatch.setattr(websockets.client, "connect", mock_connect, raising=False)
+    monkeypatch.setattr(websockets.asyncio.client, "connect", mock_connect, raising=False)
     return ws

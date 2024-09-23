@@ -11,7 +11,7 @@ readme = "README.md"
 dynamic = ["version"]
 dependencies = [
     "httpx>=0.25.0",
-    "websockets>=11.0.3",
+    "websockets>=13.1",
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",

@@ -17,4 +17,4 @@ def no_httpx_requests(monkeypatch: pytest.MonkeyPatch):
 
 @pytest.fixture(autouse=True)
 def no_websockets_connect(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.delattr("websockets.client.connect")
+    monkeypatch.delattr("websockets.asyncio.client.connect")

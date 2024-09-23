@@ -5,9 +5,9 @@ import sys
 from contextlib import asynccontextmanager
 from typing import Any, AsyncIterator, Callable, NamedTuple, cast
 
-import websockets.client
+import websockets.asyncio.client
 import websockets.frames
-from websockets.client import WebSocketClientProtocol
+from websockets.asyncio.client import ClientConnection
 from websockets.exceptions import ConnectionClosed
 
 from .backoff import Backoff, ExponentialBackoff
@@ -129,7 +129,7 @@ class Client:
 
     """
 
-    _current_websocket: WebSocketClientProtocol | None
+    _current_websocket: ClientConnection | None
     """
     The current connection to the Discord gateway, if any.
 
@@ -323,7 +323,7 @@ class Client:
         await self._ws.close(1000, reason="Going offline")
 
     @property
-    def _ws(self) -> WebSocketClientProtocol:
+    def _ws(self) -> ClientConnection:
         """The current websocket connection.
 
         :raises RuntimeError:
@@ -394,9 +394,9 @@ class Client:
         return url + "?" + urllib.parse.urlencode(params)
 
     @asynccontextmanager
-    async def _connect(self, url: str) -> AsyncIterator[WebSocketClientProtocol]:
+    async def _connect(self, url: str) -> AsyncIterator[ClientConnection]:
         """Connects to the gateway URL and sets it as the current websocket."""
-        connector = websockets.client.connect(
+        connector = websockets.asyncio.client.connect(
             self._add_gateway_params(url),
             user_agent_header=self.user_agent,
             # compression=None,
